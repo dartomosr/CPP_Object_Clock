@@ -1,0 +1,78 @@
+html,
+body {
+    color: #e0def4;
+
+    font-family: Consolas, 'Courier New', monospace;
+}
+
+body {
+    background-color: #191724;
+}
+
+body {
+    color: #e0def4;
+    font-family: Consolas, 'JetBrains Mono', monospace;
+    background-color: #191724; /* Обычный цвет фона */
+    transition: background-color 0.3s ease; /* Плавный переход для изменения фона */
+}
+
+.line {
+    display: flex;
+    width: fit-content;
+    margin: 2px 0; /* Немного отступов между строками */
+}
+
+.transparent-text-bg-container {
+    background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный белый фон */
+    padding: 10px; /* Отступы внутри контейнера */
+    border-radius: 10px; /* Скругленные углы для красоты */
+    display: inline-block; /* Чтобы контейнер не занимал всю ширину */
+    transition: background-color 0.3s ease; /* Плавный переход для изменения фона */
+}
+
+p {
+    margin: 0;
+    padding: 0;
+    display: block;
+}
+
+.keyword {
+    color: #31748f;
+}
+
+.local-variable {
+    color: inherit;
+    font-style: italic;
+}
+
+.operator {
+    color: #31748f;
+}
+
+.bracket {
+    color: #908caa;
+}
+
+.object-key {
+    color: inherit;
+}
+
+.colon {
+    color: #908caa;
+}
+
+.number {
+    color: #ebbcba;
+}
+
+.string {
+    color: #f6c177;
+}
+
+.comma {
+    color: #908caa;
+}
+
+.semicolon {
+    color: #908caa;
+}

@@ -1,0 +1,76 @@
+html,
+body {
+    color: #e1e4e8;
+    font-family: Consolas, 'Courier New', monospace;
+}
+
+body {
+    background-color: #161616;
+}
+
+body {
+    color: #e1e4e8;
+    font-family: Consolas, 'Courier New', monospace;
+    background-color: #161616; /* ������� ���� ���� */
+    transition: background-color 0.3s ease; /* ������� ������� ��� ��������� ���� */
+}
+
+.line {
+    display: flex;
+    width: fit-content;
+    margin: 2px 0; /* ������� �������� ����� �������� */
+}
+
+.transparent-text-bg-container {
+    background-color: rgba(0, 0, 0, 0.5); /* �������������� ����� ��� */
+    padding: 10px; /* ������� ������ ���������� */
+    border-radius: 10px; /* ����������� ���� ��� ������� */
+    display: inline-block; /* ����� ��������� �� ������� ��� ������ */
+    transition: background-color 0.3s ease; /* ������� ������� ��� ��������� ���� */
+}
+
+p {
+    margin: 0;
+    padding: 0;
+    display: block;
+}
+
+.keyword {
+    color: #c417af;
+}
+
+.local-variable {
+    color: #e2e5c4;
+}
+
+.operator {
+    color: #000000;
+}
+
+.bracket {
+    color: #f5f5f5;
+}
+
+.object-key {
+    color: #c9d0a9;
+}
+
+.colon {
+    color: #ffffff;
+}
+
+.number {
+    color: #edf87e;
+}
+
+.string {
+    color: #716aa3;
+}
+
+.comma {
+    color: #fcfbfc;
+}
+
+.semicolon {
+    color: #fcfbfc;
+}

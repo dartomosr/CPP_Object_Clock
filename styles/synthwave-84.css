@@ -1,0 +1,70 @@
+html,
+body {
+    color: #bbbbbb;
+
+    font-family: Consolas, 'Courier New', monospace;
+}
+
+body {
+    background-color: #262335;
+}
+
+.line {
+    display: flex;
+    width: fit-content;
+    margin: 2px 0; /* Немного отступов между строками */
+}
+
+.transparent-text-bg-container {
+    background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный белый фон */
+    padding: 10px; /* Отступы внутри контейнера */
+    border-radius: 10px; /* Скругленные углы для красоты */
+    display: inline-block; /* Чтобы контейнер не занимал всю ширину */
+    transition: background-color 0.3s ease; /* Плавный переход для изменения фона */
+}
+
+p {
+    margin: 0;
+    padding: 0;
+    display: block;
+}
+
+.keyword {
+    color: #fede5d;
+}
+
+.local-variable {
+    color: #ff7edb;
+}
+
+.operator {
+    color: #ffffffee;
+}
+
+.bracket {
+    color: inherit;
+}
+
+.object-key {
+    color: #2ee2fa;
+}
+
+.colon {
+    color: #b6b1b1;
+}
+
+.number {
+    color: #2ae2ed;
+}
+
+.string {
+    color: #ff8b39;
+}
+
+.comma {
+    color: inherit;
+}
+
+.semicolon {
+    color: inherit;
+}

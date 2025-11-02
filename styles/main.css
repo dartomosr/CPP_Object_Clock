@@ -1,0 +1,138 @@
+/* Reset style */
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+}
+
+
+.line {
+    display: flex;
+    width: fit-content;
+    margin: 2px 0; /* Немного отступов между строками */
+}
+
+.transparent-text-bg-container {
+    background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный белый фон */
+    padding: 10px; /* Отступы внутри контейнера */
+    border-radius: 10px; /* Скругленные углы для красоты */
+    display: inline-block; /* Чтобы контейнер не занимал всю ширину */
+    transition: background-color 0.3s ease; /* Плавный переход для изменения фона */
+}
+
+p {
+    margin: 0;
+    padding: 0;
+    display: block;
+}
+
+pre,
+code,
+kbd,
+samp {
+    font-family: monospace, monospace;
+    font-size: 1em;
+}
+
+/* Project style */
+
+@font-face {
+    font-family: 'JetBrains Mono';
+    src: url('../fonts/JetBrainsMono-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Hack NFM';
+    src: url('../fonts/HackNerdFontMono-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Iosevka';
+    src: url('../fonts/Iosevka-Regular.woff2') format('woff2');
+}
+
+*,
+:before,
+:after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    line-height: 1.2;
+    color: #bcbec4;
+
+    font-size: 32px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+    background-color: #1e1f22;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    color: #bcbec4;
+    font-family: Consolas, 'JetBrains Mono', monospace;
+    background-color: #1e1f22; /* Обычный цвет фона */
+    transition: background-color 0.3s ease; /* Плавный переход для изменения фона */
+}
+
+p {
+    margin-block-start: 0;
+    margin-block-end: 0;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+}
+
+.tab:before {
+    content: '\00A0\00A0\00A0\00A0';
+}
+
+.keyword {
+    color: #cf8e6d;
+}
+
+.local-variable {
+    color: inherit;
+}
+
+.operator {
+    color: inherit;
+}
+
+.bracket {
+    color: inherit;
+}
+
+.object-key {
+    color: inherit;
+}
+
+.colon {
+    color: inherit;
+}
+
+.number {
+    color: #2aacb8;
+}
+
+.string {
+    color: #6aab73;
+}
+
+.comma {
+    color: inherit;
+}
+
+.semicolon {
+    color: inherit;
+}
