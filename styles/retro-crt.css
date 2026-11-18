@@ -1,0 +1,17 @@
+body {
+    --surface: #0b150d;
+    --foreground: #b2edaa;
+    --accent: #91f894;
+    --ink-keyword: #8dd58a;
+    --ink-number: #c4ffad;
+    --ink-string: #9de49f;
+    --muted: #76ad79;
+    font-family: 'Hack NFM', monospace;
+}
+.object-key { color: var(--foreground); }
+.local-variable { color: var(--accent); }
+body::after {
+    content: ''; position: fixed; inset: 0; z-index: 3; pointer-events: none;
+    background: repeating-linear-gradient(transparent 0 .042em, #06110725 .042em .063em), radial-gradient(ellipse, transparent 56%, #02080380);
+}
+#object_clock { text-shadow: 0 0 .12em #84f78a60; }

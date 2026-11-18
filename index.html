@@ -2,27 +2,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./styles/main.css">
-    <link rel="stylesheet" href="#">
-    <title>js object - clock</title>
+    <link id="clock-theme" rel="stylesheet" href="./styles/code_blocks.css">
+    <title>C++ Object Clock</title>
 </head>
 <body>
-<div id="object_clock">
-    <p><span class="keyword">let</span> <span class="local-variable">clock</span> <span class="operator">=</span> <span class="bracket">{</span></p>
-    <p id="hour" class="tab on"><span class="object-key">hour</span>: <span id="hour_value" class="keyword">undefined</span><span class="comma">,</span></p>
-    <p id="minute" class="tab on"><span class="object-key">minute</span>: <span id="minute_value" class="keyword">undefined</span><span class="comma">,</span></p>
-    <p id="second" class="tab on"><span class="object-key">second</span>: <span id="second_value" class="keyword">undefined</span><span class="comma">,</span></p>
-    <p id="period" class="tab on"><span class="object-key">period</span>: <span id="period_value" class="keyword">undefined</span><span class="comma">,</span></p>
-    <p id="day" class="tab on"><span class="object-key">day</span>: <span id="day_value" class="keyword">undefined</span><span class="comma">,</span></p>
-    <p id="weekday" class="tab on"><span class="object-key">weekday</span>: <span id="weekday_value" class="keyword">undefined</span><span class="comma">,</span></p>
-    <p id="month" class="tab on"><span class="object-key">month</span>: <span id="month_value" class="keyword">undefined</span><span class="comma">,</span></p>
-    <p id="year" class="tab on"><span class="object-key">year</span>: <span id="year_value" class="keyword">undefined</span><span class="comma">,</span></p>
-    <p id="timezone" class="tab on"><span class="object-key">timezone</span>: <span id="timezone_value" class="keyword">undefined</span><span class="comma">,</span></p>
-    <p id="unix" class="tab on"><span class="object-key">unix</span>: <span id="unix_value" class="keyword">undefined</span><span class="comma">,</span></p>
-    <p><span class="bracket">}</span>;</p>
-</div>
-<script type="module" src="scripts/main.js"></script>
+    <canvas id="backdrop" hidden aria-hidden="true"></canvas>
+    <main id="clock-mount">
+        <section id="workspace" aria-label="Clock editor">
+            <header id="editor-head" hidden>
+                <span class="window-controls" id="window-controls">
+                    <button type="button" id="collapse" data-action="collapse" title="Collapse to status bar" aria-label="Collapse to status bar" disabled></button>
+                    <button type="button" id="minimal" data-action="minimal" title="Minimal view" aria-label="Minimal view" disabled></button>
+                    <button type="button" id="replay" data-action="replay" title="Replay typing" aria-label="Replay typing" disabled></button>
+                </span>
+                <div class="file-tab" id="current-file"><span id="file-icon"></span><span id="filename"></span></div>
+                <nav id="file-tabs" aria-label="Open files" hidden></nav>
+                <span id="drag-grip" title="Drag editor" hidden>⠿</span>
+            </header>
+            <div id="object_clock"></div>
+            <aside id="console-output" hidden aria-label="Console output">
+                <span class="console-label">OUTPUT</span><samp id="stdout"></samp>
+            </aside>
+            <footer id="status-bar" hidden>
+                <button id="expand" data-action="restore" hidden>Restore</button>
+                <b id="build-state"></b><span class="branch">⑂ main</span>
+                <span class="status-end">UTF-8</span><span id="dialect"></span><span id="position"></span>
+            </footer>
+            <div id="editor-tools" hidden>
+                <button id="restore-frame" data-action="restore" hidden>Restore frame</button>
+                <button id="center-window" data-action="center" hidden>Center</button>
+                <button id="pick-theme" data-action="palette" aria-expanded="false" hidden>Palette</button>
+                <button id="open-commands" data-action="commands" aria-label="Console commands" aria-expanded="false" hidden>&gt;_</button>
+                <samp id="audio-meter" aria-label="Audio spectrum" hidden></samp>
+            </div>
+        </section>
+    </main>
+    <div id="editor-menu" aria-label="Editor options" hidden></div>
+    <div id="watch-tip" role="tooltip" hidden></div>
+    <script src="scripts/runtime.js"></script>
 </body>
 </html>

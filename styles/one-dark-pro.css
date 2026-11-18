@@ -1,39 +1,19 @@
 html,
 body {
+    --surface: #282c34;
+    --foreground: #abb2bf;
+    --accent: #d19a66;
+    --ink-keyword: #c678dd;
+    --muted: #9295a3;
     color: #abb2bf;
-
     font-family: 'JetBrains Mono', monospace;
 }
 
 body {
     background-color: #282c34;
-}
-
-body {
     color: #abb2bf;
     font-family: Consolas, 'JetBrains Mono', monospace;
-    background-color: #282c34; /* Обычный цвет фона */
-    transition: background-color 0.3s ease; /* Плавный переход для изменения фона */
-}
-
-.line {
-    display: flex;
-    width: fit-content;
-    margin: 2px 0; /* Немного отступов между строками */
-}
-
-.transparent-text-bg-container {
-    background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный белый фон */
-    padding: 10px; /* Отступы внутри контейнера */
-    border-radius: 10px; /* Скругленные углы для красоты */
-    display: inline-block; /* Чтобы контейнер не занимал всю ширину */
-    transition: background-color 0.3s ease; /* Плавный переход для изменения фона */
-}
-
-p {
-    margin: 0;
-    padding: 0;
-    display: block;
+    transition: background-color 0.3s ease;
 }
 
 .keyword {

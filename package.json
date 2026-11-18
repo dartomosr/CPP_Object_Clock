@@ -1,0 +1,10 @@
+{
+  "name": "cpp-object-clock",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node tools/build.mjs --check && node --check scripts/runtime.js && node --test",
+    "build": "node tools/build.mjs"
+  }
+}

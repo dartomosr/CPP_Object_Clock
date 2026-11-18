@@ -1,133 +1,111 @@
-import {Clock, Settings, updateClock} from "./scripts.js";
+import {readClock} from './clock.js';
+import {createSettings, applyProperties} from './settings.js';
+import {createClockView, applyAppearance} from './view.js';
 
-let clock = new Clock();
-let settings = new Settings();
+export function startWallpaper(host, document) {
+    const settings = createSettings();
+    let canvasFps = 24;
+    let view, lastSecond, lastError, timerId, frameId;
+    let appearanceDirty = true, paused = false, stopped = false;
 
-updateClock(clock, settings);
-
-let currentBackgroundImage = null;
-
-window.wallpaperPropertyListener = {
-    applyUserProperties: function (properties) {
-        if (properties.ui_sus_mode) {
-            settings.format.sus_mode = properties.ui_sus_mode.value;
-        }
-        if (properties.ui_full_cpp_mode) {
-            settings.format.full_cpp_mode = properties.ui_full_cpp_mode.value;
-        }
-        if (properties.ui_font_size) {
-            settings.font.size = properties.ui_font_size.value;
-        }
-
-        if (properties.ui_use_12h_format) {
-            settings.format.use_12h_format = properties.ui_use_12h_format.value;
-        }
-        if (properties.ui_show_leading_zero) {
-            settings.format.show_leading_zero = properties.ui_show_leading_zero.value;
-        }
-        if (properties.ui_use_const) {
-            settings.format.use_const_declaration = properties.ui_use_const.value;
-        }
-
-        if (properties.ui_customize_position_enable) {
-            settings.position.customization.enable = properties.ui_customize_position_enable.value;
-        }
-        if (properties.ui_position_x) {
-            settings.position.x = properties.ui_position_x.value;
-        }
-        if (properties.ui_position_y) {
-            settings.position.y = properties.ui_position_y.value;
-        }
-
-        if (properties.ui_customize_visibility_enable) {
-            settings.visibility.customization.enable = properties.ui_customize_visibility_enable.value;
-        }
-        if (properties.ui_show_hour) {
-            settings.clock.elements.hour.visibility = properties.ui_show_hour.value;
-        }
-        if (properties.ui_show_minute) {
-            settings.clock.elements.minute.visibility = properties.ui_show_minute.value;
-        }
-        if (properties.ui_show_second) {
-            settings.clock.elements.second.visibility = properties.ui_show_second.value;
-        }
-        if (properties.ui_show_period) {
-            settings.clock.elements.period.visibility = properties.ui_show_period.value;
-        }
-        if (properties.ui_show_day) {
-            settings.clock.elements.day.visibility = properties.ui_show_day.value;
-        }
-        if (properties.ui_show_weekday) {
-            settings.clock.elements.weekday.visibility = properties.ui_show_weekday.value;
-        }
-        if (properties.ui_show_month) {
-            settings.clock.elements.month.visibility = properties.ui_show_month.value;
-        }
-        if (properties.ui_show_year) {
-            settings.clock.elements.year.visibility = properties.ui_show_year.value;
-        }
-        if (properties.ui_show_timezone) {
-            settings.clock.elements.timezone.visibility = properties.ui_show_timezone.value;
-        }
-        if (properties.ui_show_unix) {
-            settings.clock.elements.unix.visibility = properties.ui_show_unix.value;
-        }
-        if (properties.ui_show_utc) {
-            settings.clock.elements.utc.visibility = properties.ui_show_utc.value;
-        }
-
-        if (properties.ui_theme) {
-            settings.theme.name = properties.ui_theme.value;
-        }
-
-        if (properties.ui_customize_theme_enable) {
-            settings.theme.customization.enable = properties.ui_customize_theme_enable.value;
-        }
-        if (properties.ui_semi_transparent_bg_color) {
-            settings.format.semi_transparent_bg_color = properties.ui_semi_transparent_bg_color.value;
-        }
-        if (properties.ui_semi_transparent_bg) {
-            settings.format.semi_transparent_text_bg = properties.ui_semi_transparent_bg.value;
-            const container = document.querySelector('.transparent-text-bg-container');
-            if (container && currentBackgroundImage) {
-                if (settings.format.semi_transparent_text_bg) {
-                    container.classList.add('transparent-text-bg-container');
-                } else {
-                    container.classList.remove('transparent-text-bg-container');
+    function refresh(force = false) {
+        if (stopped || paused || document.readyState === 'loading') return;
+        const now = Date.now();
+        const second = Math.floor(now / 1000);
+        try {
+            if (!view) view = createClockView(document, host, {
+                refresh: () => refresh(true),
+                change: values => listener.applyUserProperties(Object.fromEntries(
+                    Object.entries(values).map(([key, value]) => [key, {value}])
+                ))
+            });
+            if (force || second !== lastSecond) {
+                const clock = readClock(new Date(now));
+                view.update(clock, settings);
+                lastSecond = second;
+                if (appearanceDirty) {
+                    applyAppearance(document, settings, clock.hour);
+                    view.fit();
+                    appearanceDirty = false;
                 }
-            } updateClock(clock, settings);
-        }
-        if (properties.ui_semi_transparent_bg) {
-            settings.format.semi_transparent_bg = properties.ui_semi_transparent_bg.value;
-            if (settings.format.semi_transparent_bg && currentBackgroundImage) {
-                document.body.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-            } else {
-                document.body.style.backgroundColor = '';
             }
-        }
-        if (properties.ui_font_family) {
-            settings.font.family = properties.ui_font_family.value;
-        }
-        if (properties.customimage && properties.customimage.value) {
-            currentBackgroundImage = 'file:///' + properties.customimage.value;
-            document.body.style.backgroundImage = `url('${currentBackgroundImage}')`;
-            document.body.style.backgroundRepeat = 'no-repeat';
-            document.body.style.backgroundSize = 'cover';
-            document.body.style.backgroundColor = 'none';
-        } else if (properties.customimage && properties.customimage.value === '') {
-            currentBackgroundImage = null;
-            document.body.style.backgroundImage = '';
-        } else if (currentBackgroundImage) {
-            document.body.style.backgroundImage = `url('${currentBackgroundImage}')`;
-            document.body.style.backgroundRepeat = 'no-repeat';
-            document.body.style.backgroundSize = 'cover';
-            document.body.style.backgroundColor = 'none';
-        } else {
-            document.body.style.backgroundImage = '';
+            lastError = undefined;
+        } catch (error) {
+            const message = String(error);
+            if (message !== lastError) host.console.error('[Object Clock]', error);
+            lastError = message;
         }
     }
-};
 
-setInterval(function () {
-    updateClock(clock, settings);
-}, 1000);
+    function frame(timestamp) {
+        if (paused || stopped) return;
+        frameId = host.requestAnimationFrame(frame);
+        refresh();
+        const now = Date.now();
+        view?.draw(timestamp ?? now, now, canvasFps);
+    }
+    function schedule() {
+        if (timerId === undefined) timerId = host.setInterval(refresh, 1000);
+        if (host.requestAnimationFrame && frameId === undefined) frameId = host.requestAnimationFrame(frame);
+    }
+    function cancel() {
+        if (timerId !== undefined) host.clearInterval(timerId);
+        if (frameId !== undefined) host.cancelAnimationFrame(frameId);
+        timerId = frameId = undefined;
+    }
+
+    const listener = {
+        applyGeneralProperties(properties) {
+            if (Number.isFinite(properties?.fps) && properties.fps > 0) {
+                canvasFps = Math.min(24, properties.fps);
+            }
+        },
+        applyUserProperties(properties) {
+            applyProperties(settings, properties);
+            appearanceDirty = true;
+            refresh(true);
+        },
+        setPaused(value) {
+            if (stopped || paused === Boolean(value)) return;
+            paused = Boolean(value);
+            view?.setPaused(paused);
+            if (paused) cancel();
+            else { refresh(true); schedule(); }
+        }
+    };
+    host.wallpaperPropertyListener = listener;
+    // The engine exposes one stereo spectrum callback; skip analysis while inactive.
+    const bars = '▁▂▃▄▅▆▇█';
+    const edges = [0, 2, 4, 8, 14, 22, 32, 46, 64];
+    host.wallpaperRegisterAudioListener?.(samples => {
+        if (paused || stopped || !view || !settings.ui_audio || !samples || samples.length < 128) return;
+        let meter = '';
+        for (let i = 1; i < edges.length; i++) {
+            let sum = 0;
+            for (let j = edges[i - 1]; j < edges[i]; j++) sum += (samples[j] || 0) + (samples[j + 64] || 0);
+            const level = Math.min(1, Math.max(0, sum / (2 * (edges[i] - edges[i - 1]))));
+            meter += bars[Math.round(Math.sqrt(level) * 7)];
+        }
+        view.audio(meter);
+    });
+    const resume = () => refresh(true);
+    const visible = () => { if (!document.hidden) resume(); };
+    document.addEventListener('DOMContentLoaded', resume);
+    document.addEventListener('visibilitychange', visible);
+    host.addEventListener('pageshow', resume);
+    schedule();
+    refresh(true);
+
+    return {
+        stop() {
+            stopped = true;
+            cancel();
+            view?.setPaused(true);
+            view?.stop();
+            if (host.wallpaperPropertyListener === listener) delete host.wallpaperPropertyListener;
+            document.removeEventListener('DOMContentLoaded', resume);
+            document.removeEventListener('visibilitychange', visible);
+            host.removeEventListener('pageshow', resume);
+        }
+    };
+}

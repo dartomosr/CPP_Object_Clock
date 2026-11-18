@@ -1,20 +1,36 @@
 {
-	// made by unkitr update by darto
 	"contentrating": "Everyone",
-	"description": "\"js object - clock\" is a web-based  wallpaper with a customization available. The JetBrains IDE dark theme was taken as the basis (maybe add some more).\n\n[b]List of settings:[/b]\n[list]\n[*]Select the 12 o'clock format,\n[*]Show the leading zero (convert a numeric value to a string value),\n[*]Change visibility of any element (hour, minute, second, period (PM/AM), day, weekday, month, year, timezone, UNIX, UTC),\n[*]Select font size, font family and theme,\n[*]Change to [b]const[/b] declaration,\n[*]Change clock position.\n[/list]\n\n[b]List of themes:[/b]\n[list]\n[*]Default (customized JetBrains Dark)\n[*]JetBrains Dark,\n[*]JetBrains Light,\n[*]Dark Modern,\n[*]Light Modern,\n[*]One Dark Pro,\n[*]Dracula Official,\n[*]GitHub Theme,\n[*]Rosé Pine,\n[*]Catppuccin Mocha,\n[*]SynthWave '84,\n[*][url=steamcommunity.com/sharedfiles/filedetails/?id=2980088441]CodeTime[/url].\n[/list]\n\n[b]List of font family:[/b]\n[list]\n[*]Consolas,\n[*]Courier New,\n[*]JetBrains Mono,\n[*]Hack NFM,\n[*]Iosevka.\n[/list]\n\nI will be glad to see your wishes, criticism or praise)\nIf you have any ideas on how to improve this project, then please open a discussion so that I can discuss it with you\nAlso you can use github of [url=github.com/unktir/js-object-clock]js object - clock[/url] project. It is better to use it for discussions and especially for issues\nThank y'all for 100k subscribers!\n\nThis project was inspired by Isaias19's project called [url=steamcommunity.com/sharedfiles/filedetails/?id=2980088441]CodeTime[/url]\nAlso recommend watching OOOOMGOSH's project called [url=steamcommunity.com/sharedfiles/filedetails/?id=3007669757]Python Dictionary Clock[/url]",
+	"description": "\"C++ object - clock\" is a web-based wallpaper with a customization available. The JetBrains IDE dark theme was taken as the basis (maybe add some more).\n\n[b]List of settings:[/b]\n[list]\n[*]Select the 12 o'clock format,\n[*]Show the leading zero (convert a numeric value to a string value),\n[*]Change visibility of any element (hour, minute, second, period (PM/AM), day, weekday, month, year, timezone, UNIX, UTC),\n[*]Select font size, font family and theme,\n[*]Choose from eleven syntax modes and four number bases,\n[*]Customize the editor frame, cursor, status bar, console, debugger and typing effects,\n[*]Choose seasonal and generative Canvas backgrounds, switch tabs, drag the editor, visualize audio and schedule day/night themes,\n[*]Change clock position.\n[/list]\n\n[b]List of themes:[/b]\n[list]\n[*]Default (customized JetBrains Dark)\n[*]JetBrains Dark,\n[*]JetBrains Light,\n[*]Dark Modern,\n[*]Light Modern,\n[*]One Dark Pro,\n[*]Dracula Official,\n[*]GitHub Theme,\n[*]Rosé Pine,\n[*]Catppuccin Mocha,\n[*]Rosé Pine Dawn, Gruvbox, Tokyo Night, Nord, Monokai Pro, Blueprint and Retro CRT Terminal,\n[*]SynthWave '84,\n[*][url=steamcommunity.com/sharedfiles/filedetails/?id=2980088441]CodeTime[/url].\n[/list]\n\n[b]List of font family:[/b]\n[list]\n[*]Consolas,\n[*]Courier New,\n[*]JetBrains Mono,\n[*]Hack NFM,\n[*]Iosevka.\n[/list]\n\nI will be glad to see your wishes, criticism or praise)\nIf you have any ideas on how to improve this project, then please open a discussion so that I can discuss it with you\nAlso you can use github of [url=github.com/unktir/js-object-clock]js object - clock[/url] project. It is better to use it for discussions and especially for issues\nThank y'all for 100k subscribers!\n\nThis project was inspired by Isaias19's project called [url=steamcommunity.com/sharedfiles/filedetails/?id=2980088441]CodeTime[/url]\nAlso recommend watching OOOOMGOSH's project called [url=steamcommunity.com/sharedfiles/filedetails/?id=3007669757]Python Dictionary Clock[/url]",
 	"file": "index.html",
 	"general": {
 		"properties": {
 			"customimage": {
+				"fileType": "image",
+				"index": 147,
+				"order": 144.5,
 				"text": "Add background",
-				"type": "file"
+				"type": "file",
+				"value": ""
 			},
-			"ui_full_cpp_mode": {
+			"ui_syntax_mode": {
 				"index": 126,
 				"order": 1,
-				"text": "Full C++ Mode",
-				"type": "bool",
-				"value": false
+				"options": [
+					{"label": "C Mode", "value": "c"},
+					{"label": "C++ Mode", "value": "cpp"},
+					{"label": "Modern C++ Mode", "value": "modern_cpp"},
+					{"label": "Struct / Class", "value": "class"},
+					{"label": "Pointers & Memory", "value": "memory"},
+					{"label": "Template / constexpr", "value": "template"},
+					{"label": "x86 Assembly", "value": "asm"},
+					{"label": "GLSL Shader", "value": "glsl"},
+					{"label": "C# Modern / Top-Level", "value": "cs_modern"},
+					{"label": "C# Class / Properties", "value": "cs_class"},
+					{"label": "C# LINQ / Async", "value": "cs_async"}
+				],
+				"text": "Syntax mode",
+				"type": "combo",
+				"value": "modern_cpp"
 			},
 			"ui_sus_mode": {
 				"index": 127,
@@ -26,7 +42,7 @@
 			"ui_semi_transparent_bg": {
 				"index": 128,
 				"order": 3,
-				"text": "Semi-Transparent Background",
+				"text": "Semi-transparent text panel",
 				"type": "bool",
 				"value": false
 			},
@@ -85,38 +101,14 @@
 				"condition": "ui_customize_theme_enable.value === true",
 				"index": 25,
 				"options": [
-					{
-						"label": "Default",
-						"value": "inherit"
-					},
-					{
-						"label": "Consolas",
-						"value": "Consolas, monospace"
-					},
-					{
-						"label": "Courier New",
-						"value": "Courier New, monospace"
-					},
-					{
-						"label": "JetBrains Mono",
-						"value": "JetBrains Mono, monospace"
-					},
-					{
-						"label": "Hack NFM",
-						"value": "Hack NFM, monospace"
-					},
-					{
-						"label": "Iosevka",
-						"value": "Iosevka, monospace"
-					},
-					{
-						"label": "Imapct",
-						"value": "Impact, monospace"
-					},
-					{
-						"label": "Comic sans",
-						"value": "Comic sans, monospace"
-					}
+					{"label": "Default", "value": "inherit"},
+					{"label": "Consolas", "value": "Consolas, monospace"},
+					{"label": "Courier New", "value": "Courier New, monospace"},
+					{"label": "JetBrains Mono", "value": "JetBrains Mono, monospace"},
+					{"label": "Hack NFM", "value": "Hack NFM, monospace"},
+					{"label": "Iosevka", "value": "Iosevka, monospace"},
+					{"label": "Impact", "value": "Impact, monospace"},
+					{"label": "Comic sans", "value": "Comic sans, monospace"}
 				],
 				"order": 125,
 				"text": "Font family",
@@ -126,29 +118,20 @@
 			"ui_font_size": {
 				"fraction": false,
 				"index": 1,
-				"max": 64,
+				"max": 92,
 				"min": 16,
 				"order": 101,
-				"text": "Font size",
+				"text": "Wallpaper scale (code font size)",
 				"type": "slider",
-				"value": 48
+				"value": 64
 			},
 			"ui_position_x": {
 				"condition": "ui_customize_position_enable.value === true",
 				"index": 7,
 				"options": [
-					{
-						"label": "Left",
-						"value": "flex-start"
-					},
-					{
-						"label": "Center",
-						"value": "center"
-					},
-					{
-						"label": "Right",
-						"value": "flex-end"
-					}
+					{"label": "Left", "value": "flex-start"},
+					{"label": "Center", "value": "center"},
+					{"label": "Right", "value": "flex-end"}
 				],
 				"order": 107,
 				"text": "Position X",
@@ -159,23 +142,14 @@
 				"condition": "ui_customize_position_enable.value === true",
 				"index": 8,
 				"options": [
-					{
-						"label": "Top",
-						"value": "flex-start"
-					},
-					{
-						"label": "Center",
-						"value": "Center"
-					},
-					{
-						"label": "Bottom",
-						"value": "flex-end"
-					}
+					{"label": "Top", "value": "flex-start"},
+					{"label": "Center", "value": "center"},
+					{"label": "Bottom", "value": "flex-end"}
 				],
 				"order": 108,
 				"text": "Position Y",
 				"type": "combo",
-				"value": "Center"
+				"value": "center"
 			},
 			"ui_show_day": {
 				"condition": "ui_customize_visibility_enable.value === true",
@@ -276,67 +250,32 @@
 			"ui_theme": {
 				"index": 22,
 				"options": [
-					{
-						"label": "Default",
-						"value": "main"
-					},
-					{
-						"label": "Code Blocks",
-						"value": "code_blocks"
-					},
-					{
-						"label": "Code Blocks Light",
-						"value": "code_blocks_light"
-					},
-					{
-						"label": "JetBrains Dark",
-						"value": "jb_dark"
-					},
-					{
-						"label": "Dark Modern",
-						"value": "dark_modern"
-					},
-					{
-						"label": "One Dark Pro",
-						"value": "one_dark_pro"
-					},
-					{
-						"label": "Dracula Official",
-						"value": "dracula_official"
-					},
-					{
-						"label": "GitHub Theme",
-						"value": "github_theme"
-					},
-					{
-						"label": "Rose Pine",
-						"value": "rose_pine"
-					},
-					{
-						"label": "Catppuccin Mocha",
-						"value": "catppuccin_mocha"
-					},
-					{
-						"label": "SynthWave '84",
-						"value": "synthwave_84"
-					},
-					{
-						"label": "CodeTime",
-						"value": "code_time"
-					},
-					{
-						"label": "JetBrains Light",
-						"value": "jb_light"
-					},
-					{
-						"label": "Light Modern",
-						"value": "light_modern"
-					}
+					{"label": "Default", "value": "main"},
+					{"label": "Code Blocks", "value": "code_blocks"},
+					{"label": "Code Blocks Light", "value": "code_blocks_light"},
+					{"label": "JetBrains Dark", "value": "jb_dark"},
+					{"label": "Dark Modern", "value": "dark_modern"},
+					{"label": "One Dark Pro", "value": "one_dark_pro"},
+					{"label": "Dracula Official", "value": "dracula_official"},
+					{"label": "GitHub Theme", "value": "github_theme"},
+					{"label": "Rosé Pine", "value": "rose_pine"},
+					{"label": "Catppuccin Mocha", "value": "catppuccin_mocha"},
+					{"label": "SynthWave '84", "value": "synthwave_84"},
+					{"label": "CodeTime", "value": "code_time"},
+					{"label": "JetBrains Light", "value": "jb_light"},
+					{"label": "Light Modern", "value": "light_modern"},
+					{"label": "Rosé Pine Dawn", "value": "rose_pine_dawn"},
+					{"label": "Gruvbox", "value": "gruvbox"},
+					{"label": "Tokyo Night", "value": "tokyo_night"},
+					{"label": "Nord", "value": "nord"},
+					{"label": "Monokai Pro", "value": "monokai_pro"},
+					{"label": "Blueprint", "value": "blueprint"},
+					{"label": "Retro CRT Terminal", "value": "retro_crt"}
 				],
 				"order": 122,
 				"text": "Theme",
 				"type": "combo",
-				"value": "main"
+				"value": "code_blocks"
 			},
 			"ui_use_12h_format": {
 				"condition": "",
@@ -345,20 +284,264 @@
 				"text": "Use 12h format",
 				"type": "bool",
 				"value": false
+			},
+			"ui_number_base": {
+				"index": 130,
+				"order": 4,
+				"text": "Number base",
+				"type": "combo",
+				"value": "decimal",
+				"options": [
+					{"label": "Decimal", "value": "decimal"},
+					{"label": "Binary", "value": "binary"},
+					{"label": "Hexadecimal", "value": "hex"},
+					{"label": "Roman", "value": "roman"}
+				]
+			},
+			"editor_settings": {
+				"index": 131,
+				"order": 131,
+				"text": "<h3>Editor</h3>",
+				"type": "text"
+			},
+			"ui_ide_frame": {
+				"index": 132,
+				"order": 132,
+				"text": "IDE frame",
+				"type": "bool",
+				"value": true
+			},
+			"ui_cursor": {
+				"index": 133,
+				"order": 133,
+				"text": "Blinking cursor",
+				"type": "bool",
+				"value": true
+			},
+			"ui_status_bar": {
+				"index": 134,
+				"order": 134,
+				"text": "Status bar",
+				"type": "bool",
+				"value": true
+			},
+			"ui_console": {
+				"index": 135,
+				"order": 135,
+				"text": "Console output",
+				"type": "bool",
+				"value": false
+			},
+			"ui_dynamic_comments": {
+				"index": 136,
+				"order": 136,
+				"text": "Dynamic comments",
+				"type": "bool",
+				"value": false
+			},
+			"ui_watch": {
+				"index": 137,
+				"order": 137,
+				"text": "Debugger watch",
+				"type": "bool",
+				"value": false
+			},
+			"ui_highlight": {
+				"index": 138,
+				"order": 138,
+				"text": "Highlight changed values",
+				"type": "bool",
+				"value": false
+			},
+			"ui_typewriter": {
+				"index": 139,
+				"order": 139,
+				"text": "Typewriter effect",
+				"type": "bool",
+				"value": true
+			},
+			"ui_progress": {
+				"index": 140,
+				"order": 140,
+				"text": "Progress comment",
+				"type": "combo",
+				"value": "off",
+				"options": [
+					{"label": "Off", "value": "off"},
+					{"label": "Current minute", "value": "minute"},
+					{"label": "Current day", "value": "day"}
+				]
+			},
+			"ambient_settings": {
+				"index": 141,
+				"order": 141,
+				"text": "<h3>Environment</h3>",
+				"type": "text"
+			},
+			"ui_auto_theme": {
+				"index": 142,
+				"order": 142,
+				"text": "Switch theme by local time",
+				"type": "bool",
+				"value": false
+			},
+			"ui_day_theme": {
+				"index": 143,
+				"order": 143,
+				"text": "Day theme (07:00–18:59)",
+				"type": "combo",
+				"value": "rose_pine_dawn",
+				"options": [
+					{"label": "Default", "value": "main"},
+					{"label": "Code Blocks", "value": "code_blocks"},
+					{"label": "Code Blocks Light", "value": "code_blocks_light"},
+					{"label": "JetBrains Dark", "value": "jb_dark"},
+					{"label": "Dark Modern", "value": "dark_modern"},
+					{"label": "One Dark Pro", "value": "one_dark_pro"},
+					{"label": "Dracula Official", "value": "dracula_official"},
+					{"label": "GitHub Theme", "value": "github_theme"},
+					{"label": "Rosé Pine", "value": "rose_pine"},
+					{"label": "Catppuccin Mocha", "value": "catppuccin_mocha"},
+					{"label": "SynthWave '84", "value": "synthwave_84"},
+					{"label": "CodeTime", "value": "code_time"},
+					{"label": "JetBrains Light", "value": "jb_light"},
+					{"label": "Light Modern", "value": "light_modern"},
+					{"label": "Rosé Pine Dawn", "value": "rose_pine_dawn"},
+					{"label": "Gruvbox", "value": "gruvbox"},
+					{"label": "Tokyo Night", "value": "tokyo_night"},
+					{"label": "Nord", "value": "nord"},
+					{"label": "Monokai Pro", "value": "monokai_pro"},
+					{"label": "Blueprint", "value": "blueprint"},
+					{"label": "Retro CRT Terminal", "value": "retro_crt"}
+				],
+				"condition": "ui_auto_theme.value === true"
+			},
+			"ui_night_theme": {
+				"index": 144,
+				"order": 144,
+				"text": "Night theme (19:00–06:59)",
+				"type": "combo",
+				"value": "rose_pine",
+				"options": [
+					{"label": "Default", "value": "main"},
+					{"label": "Code Blocks", "value": "code_blocks"},
+					{"label": "Code Blocks Light", "value": "code_blocks_light"},
+					{"label": "JetBrains Dark", "value": "jb_dark"},
+					{"label": "Dark Modern", "value": "dark_modern"},
+					{"label": "One Dark Pro", "value": "one_dark_pro"},
+					{"label": "Dracula Official", "value": "dracula_official"},
+					{"label": "GitHub Theme", "value": "github_theme"},
+					{"label": "Rosé Pine", "value": "rose_pine"},
+					{"label": "Catppuccin Mocha", "value": "catppuccin_mocha"},
+					{"label": "SynthWave '84", "value": "synthwave_84"},
+					{"label": "CodeTime", "value": "code_time"},
+					{"label": "JetBrains Light", "value": "jb_light"},
+					{"label": "Light Modern", "value": "light_modern"},
+					{"label": "Rosé Pine Dawn", "value": "rose_pine_dawn"},
+					{"label": "Gruvbox", "value": "gruvbox"},
+					{"label": "Tokyo Night", "value": "tokyo_night"},
+					{"label": "Nord", "value": "nord"},
+					{"label": "Monokai Pro", "value": "monokai_pro"},
+					{"label": "Blueprint", "value": "blueprint"},
+					{"label": "Retro CRT Terminal", "value": "retro_crt"}
+				],
+				"condition": "ui_auto_theme.value === true"
+			},
+			"ui_background": {
+				"index": 145,
+				"order": 145,
+				"text": "Procedural background",
+				"type": "combo",
+				"value": "none",
+				"options": [
+					{"label": "None", "value": "none"},
+					{"label": "Engineering Grid", "value": "grid"},
+					{"label": "Constellation", "value": "graph"},
+					{"label": "Oscilloscope", "value": "scope"},
+					{"label": "Code Rain", "value": "rain"},
+					{"label": "Starfield / Warp Speed", "value": "starfield"},
+					{"label": "Circuit Board", "value": "circuit"},
+					{"label": "Matrix / Cyber Rain", "value": "matrix"},
+					{"label": "Floating Wireframes", "value": "wireframe"},
+					{"label": "Perlin Flow Field", "value": "flow"},
+					{"label": "Auto Season", "value": "auto_season"},
+					{"label": "Winter / Snowfall", "value": "winter"},
+					{"label": "Spring / Sakura", "value": "spring"},
+					{"label": "Summer / Fireflies", "value": "summer"},
+					{"label": "Autumn / Amber Drift", "value": "autumn"}
+				]
+			},
+			"ui_rain_alphabet": {
+				"index": 146,
+				"order": 146,
+				"text": "Rain alphabet",
+				"type": "combo",
+				"value": "cpp",
+				"options": [
+					{"label": "C++ symbols", "value": "cpp"},
+					{"label": "Binary", "value": "binary"},
+					{"label": "Hex bytes", "value": "hex"}
+				],
+				"condition": "ui_background.value === 'rain'"
+			},
+			"ui_interactive_controls": {
+				"index": 148,
+				"order": 140.1,
+				"text": "Interactive IDE controls",
+				"type": "bool",
+				"value": false
+			},
+			"ui_draggable": {
+				"index": 149,
+				"order": 140.2,
+				"text": "Draggable window",
+				"type": "bool",
+				"value": false
+			},
+			"ui_tilt": {
+				"index": 150,
+				"order": 140.3,
+				"text": "3D parallax tilt",
+				"type": "bool",
+				"value": false
+			},
+			"ui_theme_switcher": {
+				"index": 151,
+				"order": 140.4,
+				"text": "Theme switcher",
+				"type": "bool",
+				"value": false
+			},
+			"ui_warnings": {
+				"index": 152,
+				"order": 140.5,
+				"text": "Compiler warnings",
+				"type": "bool",
+				"value": false
+			},
+			"ui_easter_eggs": {
+				"index": 153,
+				"order": 140.6,
+				"text": "Keyboard easter eggs",
+				"type": "bool",
+				"value": false
+			},
+			"ui_audio": {
+				"index": 154,
+				"order": 140.7,
+				"text": "Audio spectrum",
+				"type": "bool",
+				"value": false
 			}
-			//"ui_use_const": {
-			//	"index": 4,
-			//	"order": 104,
-			//	"text": "Use <b>const</b> declaration",
-			//	"type": "bool",
-			//	"value": false
-			//}
-		}
 		},
+		"supportsaudioprocessing": true
+	},
 	"preview": "preview.jpg",
 	"ratingsex": "none",
 	"ratingviolence": "none",
-	"tags": [ "Technology" ],
+	"tags": [
+		"Technology"
+	],
 	"title": "C++ object - clock",
 	"type": "Web",
 	"version": 8,

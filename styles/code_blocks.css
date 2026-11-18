@@ -1,38 +1,19 @@
 html,
 body {
+    --surface: #161616;
+    --foreground: #e1e4e8;
+    --accent: #edf87e;
+    --ink-keyword: #c417af;
+    --muted: #9295a3;
     color: #e1e4e8;
     font-family: Consolas, 'Courier New', monospace;
 }
 
 body {
     background-color: #161616;
-}
-
-body {
     color: #e1e4e8;
     font-family: Consolas, 'Courier New', monospace;
-    background-color: #161616; /* ������� ���� ���� */
-    transition: background-color 0.3s ease; /* ������� ������� ��� ��������� ���� */
-}
-
-.line {
-    display: flex;
-    width: fit-content;
-    margin: 2px 0; /* ������� �������� ����� �������� */
-}
-
-.transparent-text-bg-container {
-    background-color: rgba(0, 0, 0, 0.5); /* �������������� ����� ��� */
-    padding: 10px; /* ������� ������ ���������� */
-    border-radius: 10px; /* ����������� ���� ��� ������� */
-    display: inline-block; /* ����� ��������� �� ������� ��� ������ */
-    transition: background-color 0.3s ease; /* ������� ������� ��� ��������� ���� */
-}
-
-p {
-    margin: 0;
-    padding: 0;
-    display: block;
+    transition: background-color 0.3s ease;
 }
 
 .keyword {

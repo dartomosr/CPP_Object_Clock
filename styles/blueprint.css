@@ -1,0 +1,18 @@
+body {
+    --surface: #102f50;
+    --foreground: #e1f0ff;
+    --accent: #91d9ff;
+    --ink-keyword: #90cdff;
+    --ink-number: #ffda90;
+    --ink-string: #bfecdf;
+    --muted: #8baecb;
+    font-family: 'Iosevka', monospace;
+}
+.object-key { color: var(--foreground); }
+.local-variable { color: var(--accent); }
+body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none;
+    background-image: linear-gradient(#9ed4ff12 .022em, transparent .022em), linear-gradient(90deg, #9ed4ff12 .022em, transparent .022em);
+    background-size: .667em .667em;
+}
+#workspace.framed { border-radius: .04em; border-color: #8ccfff66; }

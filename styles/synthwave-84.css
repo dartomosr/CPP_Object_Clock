@@ -1,32 +1,16 @@
 html,
 body {
+    --surface: #262335;
+    --foreground: #bbbbbb;
+    --accent: #2ae2ed;
+    --ink-keyword: #fede5d;
+    --muted: #9295a3;
     color: #bbbbbb;
-
     font-family: Consolas, 'Courier New', monospace;
 }
 
 body {
     background-color: #262335;
-}
-
-.line {
-    display: flex;
-    width: fit-content;
-    margin: 2px 0; /* Немного отступов между строками */
-}
-
-.transparent-text-bg-container {
-    background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный белый фон */
-    padding: 10px; /* Отступы внутри контейнера */
-    border-radius: 10px; /* Скругленные углы для красоты */
-    display: inline-block; /* Чтобы контейнер не занимал всю ширину */
-    transition: background-color 0.3s ease; /* Плавный переход для изменения фона */
-}
-
-p {
-    margin: 0;
-    padding: 0;
-    display: block;
 }
 
 .keyword {

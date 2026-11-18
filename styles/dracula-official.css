@@ -1,39 +1,19 @@
 html,
 body {
+    --surface: #282a36;
+    --foreground: #f8f8f2;
+    --accent: #bd93f9;
+    --ink-keyword: #ff79c6;
+    --muted: #9295a3;
     color: #f8f8f2;
-
     font-family: Consolas, 'Courier New', monospace;
 }
 
 body {
     background-color: #282a36;
-}
-
-body {
     color: #f8f8f2;
     font-family: Consolas, 'Courier New', monospace;
-    background-color: #282a36; /* Обычный цвет фона */
-    transition: background-color 0.3s ease; /* Плавный переход для изменения фона */
-}
-
-.line {
-    display: flex;
-    width: fit-content;
-    margin: 2px 0; /* Немного отступов между строками */
-}
-
-.transparent-text-bg-container {
-    background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный белый фон */
-    padding: 10px; /* Отступы внутри контейнера */
-    border-radius: 10px; /* Скругленные углы для красоты */
-    display: inline-block; /* Чтобы контейнер не занимал всю ширину */
-    transition: background-color 0.3s ease; /* Плавный переход для изменения фона */
-}
-
-p {
-    margin: 0;
-    padding: 0;
-    display: block;
+    transition: background-color 0.3s ease;
 }
 
 .keyword {

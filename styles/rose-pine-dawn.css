@@ -1,0 +1,13 @@
+body {
+    --surface: #faf4ed;
+    --foreground: #575279;
+    --accent: #286983;
+    --ink-keyword: #907aa9;
+    --ink-number: #b4637a;
+    --ink-string: #90714b;
+    --muted: #797593;
+    font-family: 'JetBrains Mono', monospace;
+    --clock-panel-background: rgba(250, 244, 237, .72);
+}
+.object-key { color: var(--foreground); }
+.local-variable { color: var(--accent); }

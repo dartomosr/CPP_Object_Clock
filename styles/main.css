@@ -1,44 +1,3 @@
-/* Reset style */
-
-html {
-    -webkit-text-size-adjust: 100%;
-}
-
-body {
-    margin: 0;
-}
-
-
-.line {
-    display: flex;
-    width: fit-content;
-    margin: 2px 0; /* Немного отступов между строками */
-}
-
-.transparent-text-bg-container {
-    background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный белый фон */
-    padding: 10px; /* Отступы внутри контейнера */
-    border-radius: 10px; /* Скругленные углы для красоты */
-    display: inline-block; /* Чтобы контейнер не занимал всю ширину */
-    transition: background-color 0.3s ease; /* Плавный переход для изменения фона */
-}
-
-p {
-    margin: 0;
-    padding: 0;
-    display: block;
-}
-
-pre,
-code,
-kbd,
-samp {
-    font-family: monospace, monospace;
-    font-size: 1em;
-}
-
-/* Project style */
-
 @font-face {
     font-family: 'JetBrains Mono';
     src: url('../fonts/JetBrainsMono-Regular.woff2') format('woff2');
@@ -54,85 +13,168 @@ samp {
     src: url('../fonts/Iosevka-Regular.woff2') format('woff2');
 }
 
-*,
-:before,
-:after {
-    box-sizing: border-box;
-}
-
-html,
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { height: 100%; -webkit-text-size-adjust: 100%; }
 body {
-    height: 100%;
-    line-height: 1.2;
-    color: #bcbec4;
-
-    font-size: 32px;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-body {
+    --surface: #1e1f22;
+    --foreground: #bcbec4;
+    --accent: #69bec3;
+    --ink-keyword: #cf8e6d;
+    --ink-number: #2aacb8;
+    --ink-string: #6aab73;
+    --muted: #858992;
+    --edge: rgba(134, 145, 155, .27);
+    --clock-panel-background: rgba(0, 0, 0, .5);
     display: flex;
-    justify-content: center;
     align-items: center;
-    padding: 50px;
-    background-color: #1e1f22;
+    justify-content: center;
+    height: 100%;
+    margin: 0;
+    padding: min(.65em, 8vmin);
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--surface) center / cover no-repeat;
+    color: var(--foreground);
+    font: 64px/1.2 Consolas, 'JetBrains Mono', monospace;
     -webkit-font-smoothing: antialiased;
 }
 
-body {
-    color: #bcbec4;
-    font-family: Consolas, 'JetBrains Mono', monospace;
-    background-color: #1e1f22; /* Обычный цвет фона */
-    transition: background-color 0.3s ease; /* Плавный переход для изменения фона */
+#backdrop { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#clock-mount { position: relative; flex: none; z-index: 1; }
+#workspace { width: max-content; transform-origin: top left; }
+.fitted #workspace { position: absolute; top: 0; left: 0; }
+#workspace.framed {
+    min-width: 19ch;
+    overflow: hidden;
+    border: .025em solid var(--edge);
+    border-radius: .22em;
+    background-color: var(--surface);
+    background-color: color-mix(in srgb, var(--surface) 94%, transparent);
+    box-shadow: 0 .375em 1.125em rgba(0, 0, 0, .22), 0 .04em .125em rgba(0, 0, 0, .12);
 }
-
-p {
-    margin-block-start: 0;
-    margin-block-end: 0;
-    margin-inline-start: 0;
-    margin-inline-end: 0;
+#workspace.framed.has-custom-image:not(.transparent-text-bg-container) { background-color: transparent; }
+#workspace.transparent-text-bg-container { background-color: var(--clock-panel-background); border-radius: .22em; }
+.transparent-text-bg-container:not(.framed) #object_clock { padding: .22em; }
+#editor-head, #status-bar, #console-output {
+    font: .5em/1.5 'JetBrains Mono', monospace;
+    color: var(--foreground);
 }
-
-.tab:before {
-    content: '\00A0\00A0\00A0\00A0';
+#editor-head {
+    display: flex;
+    align-items: stretch;
+    font-size: .625em;
+    min-height: 2em;
+    border-bottom: .04em solid var(--edge);
+    background: rgba(120, 125, 135, .07);
 }
-
-.keyword {
-    color: #cf8e6d;
+.window-controls { display: flex; align-items: center; gap: .32em; padding: 0 .85em; }
+.window-controls button { width: .42em; height: .42em; border-radius: 50%; background: var(--muted); opacity: .55; }
+.window-controls button:nth-child(2) { opacity: .37; }
+.window-controls button:last-child { opacity: .22; }
+.file-tab {
+    display: flex; align-items: center; gap: .5em; padding: 0 .85em;
+    border-inline: .04em solid var(--edge);
+    box-shadow: inset 0 .1em var(--accent);
+    background: var(--surface);
 }
-
-.local-variable {
-    color: inherit;
+#file-icon { font-size: .8em; font-weight: bold; color: var(--accent); }
+#object_clock { font-variant-numeric: tabular-nums; white-space: pre; }
+.framed #object_clock { padding: .45em .8em .5em .38em; }
+.code-row { display: flex; align-items: baseline; margin: .04em 0; }
+.source { position: relative; display: inline-block; margin-left: calc(var(--indent) * 4ch); }
+.framed .code-row::before {
+    content: attr(data-ln);
+    align-self: center;
+    flex: none;
+    width: 3.6ch;
+    text-align: right;
+    margin-right: 1.6ch;
+    color: var(--muted);
+    font-size: .48em;
 }
-
-.operator {
-    color: inherit;
+.framed .source::before {
+    content: ''; position: absolute; top: 0; bottom: 0;
+    left: calc(var(--indent) * -4ch); width: calc(var(--indent) * 4ch);
+    background: repeating-linear-gradient(90deg, var(--edge) 0 .025em, transparent .025em 4ch);
 }
-
-.bracket {
-    color: inherit;
+.cursor .code-row:last-child .source::after {
+    content: ''; display: inline-block; margin-left: .15ch; width: .44ch; height: .92em;
+    vertical-align: -.08em; background: var(--accent); animation: blink 1.15s step-end infinite;
 }
-
-.object-key {
-    color: inherit;
+#status-bar, #console-output { display: flex; align-items: center; gap: 1em; padding: .35em 1em; border-top: .05em solid var(--edge); }
+.status-end { margin-left: auto; }
+#build-state {
+    background: var(--accent); color: var(--surface); padding: .08em .6em; border-radius: .16em;
+    font-size: .9em; font-weight: bold; letter-spacing: .06em;
 }
-
-.colon {
-    color: inherit;
+#build-state.building { background: var(--ink-keyword); }
+.console-label { color: var(--muted); font-size: .85em; letter-spacing: .12em; }
+#stdout { font: inherit; }
+#watch-tip {
+    font: calc(.5em * var(--editor-fit, 1))/1.5 'JetBrains Mono', monospace;
+    color: var(--foreground);
+    z-index: 5; position: fixed; pointer-events: none; white-space: pre; padding: .5em .8em;
+    border: .05em solid var(--edge); border-left: .16em solid var(--accent); border-radius: .22em;
+    background: var(--surface); box-shadow: 0 .35em 1em #0003;
 }
-
-.number {
-    color: #2aacb8;
+.watch [data-watch]:hover { text-decoration: underline dotted var(--accent); text-underline-offset: .15em; cursor: help; }
+.keyword { color: var(--ink-keyword); }
+.number { color: var(--ink-number); }
+.string { color: var(--ink-string); }
+.comment { color: var(--muted); font-style: italic; }
+.flash-a { animation: flash-a .6s ease-out; }
+.flash-b { animation: flash-b .6s ease-out; }
+@keyframes flash-a { from { color: var(--accent); text-shadow: 0 0 .3em currentColor; } }
+@keyframes flash-b { from { color: var(--accent); text-shadow: 0 0 .3em currentColor; } }
+.typing { animation: type-line .24s steps(14, end) backwards; }
+@keyframes type-line { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+@keyframes blink { 50% { opacity: 0; } }
+.paused, .paused *, .paused *::before, .paused *::after { animation-play-state: paused !important; transition: none !important; }
+#backdrop { color: var(--accent); }
+#backdrop[data-scene=winter] { color: color-mix(in srgb, var(--accent) 58%, #b5dcff); }
+#backdrop[data-scene=spring] { color: color-mix(in srgb, var(--accent) 52%, #ff9cc5); }
+#backdrop[data-scene=summer] { color: color-mix(in srgb, var(--accent) 45%, #ffd36d); }
+#backdrop[data-scene=autumn] { color: color-mix(in srgb, var(--accent) 45%, #ef9751); }
+#clock-mount.floating { position: fixed; }
+#workspace.collapsed { background: var(--surface); border-radius: .1em; }
+#editor-head.draggable { cursor: grab; touch-action: none; user-select: none; }
+#clock-mount.dragging #editor-head { cursor: grabbing; }
+#drag-grip { align-self: center; margin-left: auto; padding: .15em .6em; color: var(--muted); }
+button { font: inherit; color: inherit; border: 0; background: transparent; padding: 0; }
+button:not(:disabled) { cursor: pointer; }
+button:focus-visible { outline: .12em solid var(--accent); outline-offset: -.12em; }
+.window-controls button { position: relative; }
+.window-controls button::before { content: ''; position: absolute; inset: -.32em -.12em; }
+.window-controls button:not(:disabled) { background: var(--accent); opacity: .85; }
+.window-controls button:not(:disabled):hover { box-shadow: 0 0 .35em var(--accent); }
+#file-tabs { display: flex; align-items: stretch; }
+#file-tabs button { padding: .3em .65em; font-size: .77em; color: var(--muted); border-inline-start: .05em solid var(--edge); }
+#file-tabs button[aria-pressed=true] { background: var(--surface); color: var(--foreground); box-shadow: inset 0 .12em var(--accent); }
+#editor-tools {
+    display: flex; gap: .6em; align-items: center; padding: .25em .7em;
+    font: .48em/1.5 'JetBrains Mono', monospace; border-top: .05em solid var(--edge);
 }
-
-.string {
-    color: #6aab73;
+#editor-tools button, #expand, #editor-menu button { padding: .18em .55em; border-radius: .18em; }
+#editor-tools button:hover, #expand:hover, #editor-menu button:hover, #file-tabs button:hover {
+    background: var(--edge); color: var(--foreground);
 }
-
-.comma {
-    color: inherit;
+#audio-meter { margin-left: auto; font: inherit; color: var(--accent); letter-spacing: .1em; }
+#editor-menu {
+    position: fixed; z-index: 6; display: grid; grid-template-columns: repeat(2, auto);
+    font: calc(.5em * var(--editor-fit, 1))/1.5 'JetBrains Mono', monospace;
+    max-height: 50vh; max-width: 95vw; overflow: auto; overscroll-behavior: contain;
+    gap: .1em; padding: .35em; background: var(--surface); color: var(--foreground);
+    border: .06em solid var(--edge); border-radius: .22em; box-shadow: 0 .35em 1em #0004;
 }
-
-.semicolon {
-    color: inherit;
+#editor-menu button { text-align: left; }
+#editor-menu button[aria-pressed=true] { box-shadow: inset .15em 0 var(--accent); color: var(--accent); }
+#file-tabs button, #editor-menu button, #workspace { transition: color .15s, background-color .15s; }
+#editor-menu:not([hidden]) { animation: menu-open .14s ease-out; }
+@keyframes menu-open { from { opacity: .35; transform: translateY(.2em); } }
+.source .warning, .source .error {
+    text-decoration: underline wavy; text-underline-offset: .18em; cursor: help;
 }
+.source .warning { text-decoration-color: #dbad4a; }
+.source .error { text-decoration-color: #e56570; }
+#stdout { white-space: pre-wrap; }
