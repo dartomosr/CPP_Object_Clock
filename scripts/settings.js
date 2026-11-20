@@ -43,9 +43,12 @@ const OPTIONS = new Map(Object.entries({
 
 export const DEFAULT_SETTINGS = Object.freeze({
     customimage: '',
-    ui_syntax_mode: 'modern_cpp',
+    ui_background_interval: 5,
+    ui_syntax_mode: 'cpp',
     ui_number_base: 'decimal',
     ui_ide_frame: true,
+    ui_ide_panel_background: true,
+    ui_photo_panel_transparency: 6,
     ui_cursor: true,
     ui_status_bar: true,
     ui_console: false,
@@ -64,6 +67,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
     ui_auto_theme: false,
     ui_day_theme: 'rose_pine_dawn',
     ui_night_theme: 'rose_pine',
+    ui_custom_effect_color: false,
+    ui_effect_color: '0.7 0.85 1',
     ui_background: 'none',
     ui_rain_alphabet: 'cpp',
     ui_sus_mode: false,
@@ -85,6 +90,12 @@ export function createSettings() {
     return {...DEFAULT_SETTINGS};
 }
 
+export function effectColorCss(value) {
+    const channels = value.trim().split(/\s+/).map(Number);
+    if (channels.length !== 3 || !channels.every(n => Number.isFinite(n) && n >= 0 && n <= 1)) return '';
+    return `rgb(${channels.map(n => Math.round(n * 255)).join(', ')})`;
+}
+
 // Wallpaper Engine sends partial updates. Keep previous values for omitted properties.
 export function applyProperties(settings, properties) {
     for (const key of Object.keys(DEFAULT_SETTINGS)) {
@@ -98,6 +109,14 @@ export function applyProperties(settings, properties) {
         } else if (key === 'ui_font_size') {
             if (!Number.isFinite(value)) continue;
             value = Math.round(Math.max(16, Math.min(92, value)));
+        } else if (key === 'ui_photo_panel_transparency') {
+            if (!Number.isFinite(value)) continue;
+            value = Math.round(Math.max(0, Math.min(100, value)));
+        } else if (key === 'ui_background_interval') {
+            if (!Number.isFinite(value)) continue;
+            value = Math.round(Math.max(1, Math.min(120, value)));
+        } else if (key === 'ui_effect_color' && !effectColorCss(value)) {
+            continue;
         }
         settings[key] = value;
     }

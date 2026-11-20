@@ -53,8 +53,11 @@ body {
     background-color: color-mix(in srgb, var(--surface) 94%, transparent);
     box-shadow: 0 .375em 1.125em rgba(0, 0, 0, .22), 0 .04em .125em rgba(0, 0, 0, .12);
 }
-#workspace.framed.has-custom-image:not(.transparent-text-bg-container) { background-color: transparent; }
 #workspace.transparent-text-bg-container { background-color: var(--clock-panel-background); border-radius: .22em; }
+#workspace.photo-panel:is(.framed, .transparent-text-bg-container) {
+    background-color: color-mix(in srgb, var(--surface) var(--photo-panel-opacity), transparent);
+}
+#workspace.framed.no-panel-background { background-color: transparent; }
 .transparent-text-bg-container:not(.framed) #object_clock { padding: .22em; }
 #editor-head, #status-bar, #console-output {
     font: .5em/1.5 'JetBrains Mono', monospace;

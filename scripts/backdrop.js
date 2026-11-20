@@ -1,5 +1,5 @@
 export function createBackdrop(canvas, host) {
-    let mode = 'none', alphabet = 'cpp', context, ink;
+    let mode = 'none', alphabet = 'cpp', context, themeInk, customInk = '';
     let sceneScale = 1;
     let width, height, ratio, previous, elapsed = 0;
     let targetX = 0, targetY = 0, driftX = 0, driftY = 0;
@@ -199,44 +199,88 @@ export function createBackdrop(canvas, host) {
         context.stroke();
     }
 
+    // Independent samples keep seasonal particles from forming the rows of the technical scenes.
+    let seasonSeed = 73129;
+    function seasonRandom() {
+        seasonSeed = (Math.imul(seasonSeed, 1664525) + 1013904223) >>> 0;
+        return seasonSeed / 2 ** 32;
+    }
+    const seasonalParticles = Array.from({length: particles.length}, () => ({
+        x: seasonRandom(), y: seasonRandom(), depth: seasonRandom(), speed: seasonRandom(),
+        phase: seasonRandom() * Math.PI * 2, turn: (seasonRandom() - .5) * 1.6
+    }));
+
+    function snowflake(x, y, depth, angle) {
+        context.beginPath();
+        if (depth < .72) {
+            context.arc(x, y, .7 + depth * 2, 0, Math.PI * 2);
+            context.fill();
+            return;
+        }
+        const radius = 4 + depth * 4;
+        for (let arm = 0; arm < 6; arm++) {
+            const direction = angle + arm * Math.PI / 3;
+            const dx = Math.cos(direction), dy = Math.sin(direction);
+            const branchX = x + dx * radius * .62, branchY = y + dy * radius * .62;
+            segment(x, y, x + dx * radius, y + dy * radius);
+            segment(branchX, branchY, branchX + (dx + dy) * 2.1, branchY + (dy - dx) * 2.1);
+            segment(branchX, branchY, branchX + (dx - dy) * 2.1, branchY + (dy + dx) * 2.1);
+        }
+        context.stroke();
+    }
+
+    function petalOrLeaf(x, y, radius, angle, flutter, isLeaf) {
+        context.save();
+        context.translate(x, y);
+        context.rotate(angle);
+        context.scale(.4 + Math.abs(Math.sin(flutter)) * .6, 1);
+        context.beginPath();
+        context.moveTo(0, -radius);
+        if (isLeaf) {
+            context.quadraticCurveTo(radius * 1.25, -.35 * radius, 0, radius);
+            context.quadraticCurveTo(-radius, .15 * radius, 0, -radius);
+        } else {
+            context.quadraticCurveTo(radius * 1.2, -radius * 1.25, radius * .6, 0);
+            context.quadraticCurveTo(radius * .3, radius * .8, 0, radius);
+            context.quadraticCurveTo(-radius * .9, radius * .3, -radius * .7, -radius * .5);
+            context.quadraticCurveTo(-radius * .52, -radius * 1.35, 0, -radius);
+        }
+        context.fill();
+        if (isLeaf) {
+            context.globalAlpha *= .75;
+            context.beginPath();
+            segment(0, -radius * .85, 0, radius * 1.18);
+            context.stroke();
+        }
+        context.restore();
+    }
+
     function season() {
-        const count = Math.min(particles.length, Math.max(22, Math.ceil(width * height / 16000)));
-        context.font = '16px monospace';
+        const count = Math.min(seasonalParticles.length, Math.max(22, Math.ceil(width * height / 16000)));
+        const winter = mode === 'winter', summer = mode === 'summer', autumn = mode === 'autumn';
+        const wind = Math.sin(elapsed * .23) * 18 + Math.sin(elapsed * .61) * 6;
+        const margin = 32, fallHeight = height + 2 * margin;
         for (let i = 0; i < count; i++) {
-            const p = particles[i], a = elapsed * .65 + p.spin;
-            const x = p.x * (width + 40) - 20 + Math.sin(a) * (12 + 18 * p.depth);
-            const y = ((p.y * (height + 36) + elapsed * (14 + 25 * p.depth)) % (height + 36)) - 18;
-            context.globalAlpha = .26 + p.depth * .36;
-            if (mode === 'winter') {
-                context.fillText(['*', '+', '❄'][i % 3], x, y);
-            } else if (mode === 'summer') {
-                const glowY = p.y * height + Math.cos(a * .77) * 23;
-                const glow = .25 + .7 * (.5 + .5 * Math.sin(a * 1.6));
-                for (const radius of [9, 5, 2]) {
-                    context.globalAlpha = glow / (radius * .8);
+            const p = seasonalParticles[i];
+            const sway = p.phase + elapsed * (.4 + .75 * p.speed);
+            const x = p.x * width + Math.sin(sway) * (8 + 25 * p.depth) + wind * p.depth;
+            context.globalAlpha = .18 + p.depth * .46;
+            if (summer) {
+                const y = p.y * height + Math.cos(sway * .8) * (10 + 15 * p.depth);
+                const glow = (.5 + .5 * Math.sin(p.phase + elapsed * (.7 + p.speed))) ** 2;
+                for (const radius of [10, 5, 1.7]) {
+                    context.globalAlpha = (.18 + .82 * glow) * p.depth / radius;
                     context.beginPath();
-                    context.arc(x, glowY, radius * (.5 + p.depth), 0, Math.PI * 2);
+                    context.arc(x, y, radius * (.6 + p.depth), 0, Math.PI * 2);
                     context.fill();
                 }
-            } else {
-                const radius = (mode === 'spring' ? 5 : 8) * (.6 + p.depth);
-                context.save();
-                context.translate(x, y);
-                context.rotate(a + p.spin);
-                context.scale(.45 + Math.abs(Math.sin(a)) * .55, 1);
-                context.beginPath();
-                context.moveTo(0, -radius);
-                context.quadraticCurveTo(radius * 1.2, 0, 0, radius);
-                context.quadraticCurveTo(-radius * .8, radius / 2, 0, -radius);
-                context.fill();
-                if (mode === 'autumn') {
-                    context.globalAlpha = .48;
-                    context.beginPath();
-                    segment(0, -radius * .8, 0, radius * 1.4);
-                    context.stroke();
-                }
-                context.restore();
+                continue;
             }
+            const speed = 8 + 20 * p.speed + p.depth * (autumn ? 31 : 15);
+            const y = (p.y * fallHeight + elapsed * speed) % fallHeight - margin;
+            const angle = p.phase + p.turn * elapsed;
+            if (winter) snowflake(x, y, p.depth, angle * .4);
+            else petalOrLeaf(x, y, (autumn ? 8 : 5) * (.6 + p.depth), angle, sway, autumn);
         }
     }
 
@@ -258,12 +302,12 @@ export function createBackdrop(canvas, host) {
             if (canvas.height !== pixelsY) canvas.height = pixelsY;
             context.setTransform(ratio, 0, 0, ratio, 0, 0);
         }
-        if (!ink) {
+        if (!customInk && !themeInk) {
             const colors = host.getComputedStyle(canvas);
-            ink = colors.color || colors.getPropertyValue('--accent').trim() || '#70b7b1';
+            themeInk = colors.color || colors.getPropertyValue('--accent').trim() || '#70b7b1';
         }
         context.clearRect(0, 0, width, height);
-        context.strokeStyle = context.fillStyle = ink;
+        context.strokeStyle = context.fillStyle = customInk || themeInk;
         if (mode === 'grid') grid();
         if (mode === 'graph') graph(delta);
         if (mode === 'scope') scope(wallTime);
@@ -280,14 +324,15 @@ export function createBackdrop(canvas, host) {
         if (['winter', 'spring', 'summer', 'autumn'].includes(mode)) season();
     }
     return {
-        configure(next, chars, fontSize) {
+        configure(next, chars, fontSize, color) {
             alphabet = chars;
+            customInk = color;
             // Background geometry is authored in logical units at the original 48 px clock size.
             sceneScale = fontSize / 48;
             if (mode === next) return;
             mode = next;
             canvas.setAttribute('data-scene', next);
-            ink = undefined;
+            themeInk = undefined;
             canvas.hidden = mode === 'none';
             if (!canvas.hidden && !context) context = canvas.getContext('2d');
             previous = undefined;
@@ -300,6 +345,6 @@ export function createBackdrop(canvas, host) {
         },
         draw,
         resetFrame() { previous = undefined; },
-        paletteChanged() { ink = undefined; }
+        paletteChanged() { themeInk = undefined; }
     };
 }

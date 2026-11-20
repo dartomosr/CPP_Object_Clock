@@ -2,11 +2,35 @@ import {readClock} from './clock.js';
 import {createSettings, applyProperties} from './settings.js';
 import {createClockView, applyAppearance} from './view.js';
 
+const BACKGROUND_DIRECTORY = 'backgroundfolder';
+const backgroundOrder = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+
 export function startWallpaper(host, document) {
     const settings = createSettings();
     let canvasFps = 24;
     let view, lastSecond, lastError, timerId, frameId;
     let appearanceDirty = true, paused = false, stopped = false;
+    let backgroundFiles = [], backgroundIndex = 0, nextBackgroundAt;
+
+    function updateBackgroundFiles(propertyName, files, removed = false) {
+        if (stopped || propertyName !== BACKGROUND_DIRECTORY) return;
+        const current = backgroundFiles[backgroundIndex];
+        const paths = new Set(backgroundFiles);
+        for (const path of files) {
+            if (removed) paths.delete(path);
+            else paths.add(path);
+        }
+        const fileName = path => path.split(/[/\\]/).pop();
+        backgroundFiles = [...paths].sort((a, b) =>
+            backgroundOrder.compare(fileName(a), fileName(b)) || a.localeCompare(b)
+        );
+        backgroundIndex = Math.max(0, backgroundFiles.indexOf(current));
+        if (backgroundFiles.length < 2 || backgroundFiles[backgroundIndex] !== current) {
+            nextBackgroundAt = undefined;
+        }
+        appearanceDirty = true;
+        refresh(true);
+    }
 
     function refresh(force = false) {
         if (stopped || paused || document.readyState === 'loading') return;
@@ -20,11 +44,18 @@ export function startWallpaper(host, document) {
                 ))
             });
             if (force || second !== lastSecond) {
+                if (backgroundFiles.length > 1 && (nextBackgroundAt === undefined || now >= nextBackgroundAt)) {
+                    if (nextBackgroundAt !== undefined) {
+                        backgroundIndex = (backgroundIndex + 1) % backgroundFiles.length;
+                        appearanceDirty = true;
+                    }
+                    nextBackgroundAt = now + settings.ui_background_interval * 60_000;
+                }
                 const clock = readClock(new Date(now));
                 view.update(clock, settings);
                 lastSecond = second;
                 if (appearanceDirty) {
-                    applyAppearance(document, settings, clock.hour);
+                    applyAppearance(document, settings, clock.hour, backgroundFiles[backgroundIndex]);
                     view.fit();
                     appearanceDirty = false;
                 }
@@ -61,9 +92,17 @@ export function startWallpaper(host, document) {
             }
         },
         applyUserProperties(properties) {
+            const previousInterval = settings.ui_background_interval;
             applyProperties(settings, properties);
+            if (settings.ui_background_interval !== previousInterval) nextBackgroundAt = undefined;
             appearanceDirty = true;
             refresh(true);
+        },
+        userDirectoryFilesAddedOrChanged(propertyName, files) {
+            updateBackgroundFiles(propertyName, files);
+        },
+        userDirectoryFilesRemoved(propertyName, files) {
+            updateBackgroundFiles(propertyName, files, true);
         },
         setPaused(value) {
             if (stopped || paused === Boolean(value)) return;

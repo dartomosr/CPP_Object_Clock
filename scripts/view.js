@@ -1,10 +1,11 @@
 import {createBackdrop} from './backdrop.js';
 import {MODES, makeListing} from './clock.js';
-import {THEMES, activeTheme, visibleFields, seasonalBackground} from './settings.js';
+import {THEMES, activeTheme, visibleFields, seasonalBackground, effectColorCss} from './settings.js';
 
 export function backgroundImageUrl(path) {
     if (!path) return '';
-    const normalized = path.replace(/\\/g, '/');
+    // Wallpaper Engine can escape the drive separator before sending a file property.
+    const normalized = path.replace(/\\/g, '/').replace(/^(file:\/\/\/)?([a-z])%3a(?=\/)/i, '$1$2:');
     // An existing file URL may already contain percent-encoded filename characters.
     if (/^file:\/\//i.test(normalized)) {
         const url = new URL(normalized.replace(/#/g, '%23'));
@@ -23,7 +24,7 @@ function applyTheme(document, theme) {
     else link.removeAttribute('href');
 }
 
-export function applyAppearance(document, settings, hour = new Date().getHours()) {
+export function applyAppearance(document, settings, hour = new Date().getHours(), backgroundPath = settings.customimage) {
     const {style} = document.body;
     style.fontSize = `${settings.ui_font_size}px`;
     style.fontFamily = settings.ui_customize_theme_enable && settings.ui_font_family !== 'inherit'
@@ -31,10 +32,13 @@ export function applyAppearance(document, settings, hour = new Date().getHours()
     style.justifyContent = settings.ui_customize_position_enable ? settings.ui_position_x : 'center';
     style.alignItems = settings.ui_customize_position_enable ? settings.ui_position_y : 'center';
     applyTheme(document, activeTheme(settings, hour));
-    style.backgroundImage = backgroundImageUrl(settings.customimage);
     const panel = document.getElementById('workspace');
-    panel.classList.toggle('has-custom-image', Boolean(settings.customimage));
+    panel.classList.toggle('no-panel-background', !settings.ui_ide_panel_background);
     panel.classList.toggle('transparent-text-bg-container', settings.ui_semi_transparent_bg);
+    const image = backgroundImageUrl(backgroundPath);
+    style.backgroundImage = image;
+    panel.classList.toggle('photo-panel', Boolean(image));
+    panel.style.setProperty('--photo-panel-opacity', `${100 - settings.ui_photo_panel_transparency}%`);
 }
 
 function setText(node, text) {
@@ -49,7 +53,7 @@ export function createClockView(document, host = document.defaultView, actions =
     const backdrop = createBackdrop(get('backdrop'), host);
     const desktop = createEditorControls(document, host, actions);
     let rows = [], mode, structure, typingEnabled, watchEnabled, hovered;
-    let lastUnix, buildStart, lastTheme, lastAudio = 0;
+    let lastUnix, lastHourStart, buildStart, lastTheme, lastAudio = 0;
     let pointerX = 0, pointerY = 0;
     let suspended = false;
     let needsFit = true;
@@ -173,10 +177,10 @@ export function createClockView(document, host = document.defaultView, actions =
         const hour = settings.ui_use_12h_format ? clock.hour % 12 || 12 : clock.hour;
         const time = [hour, clock.minute, clock.second].map(n => String(n).padStart(2, '0')).join(':') +
             (settings.ui_use_12h_format ? ' ' + clock.period : '');
-        const minuteChanged = tick && clock.unix > lastUnix && clock.unix - lastUnix < 60 &&
-            Math.floor(lastUnix / 60) !== Math.floor(clock.unix / 60);
+        const hourStart = clock.unix - clock.minute * 60 - clock.second;
+        const hourChanged = hourStart !== lastHourStart && clock.unix > lastUnix && clock.unix - lastUnix < 60;
         if (!settings.ui_status_bar || clock.unix < lastUnix) buildStart = undefined;
-        else if (minuteChanged) buildStart = clock.unix;
+        else if (hourChanged) buildStart = clock.unix;
         const age = clock.unix - buildStart;
         const framed = settings.ui_ide_frame && !desktop.minimal && !desktop.collapsed;
         header.hidden = !framed;
@@ -210,12 +214,14 @@ export function createClockView(document, host = document.defaultView, actions =
             backdrop.paletteChanged();
         }
         const scene = desktop.matrixBoost() ? 'matrix' : seasonalBackground(settings.ui_background, clock.monthIndex);
-        backdrop.configure(scene, settings.ui_rain_alphabet, settings.ui_font_size);
+        const customColor = settings.ui_custom_effect_color ? effectColorCss(settings.ui_effect_color) : '';
+        backdrop.configure(scene, settings.ui_rain_alphabet, settings.ui_font_size, customColor);
         lastTheme = theme;
         mode = nextMode;
         structure = layout;
         typingEnabled = settings.ui_typewriter;
         lastUnix = clock.unix;
+        lastHourStart = hourStart;
         if (needsFit || !observer) fit();
     }
     return {
@@ -233,7 +239,7 @@ export function createClockView(document, host = document.defaultView, actions =
             suspended = paused;
             desktop.pause(paused);
             needsFit = true;
-            lastUnix = buildStart = undefined;
+            lastUnix = lastHourStart = buildStart = undefined;
             document.body.classList.toggle('paused', paused);
             backdrop.resetFrame();
             hideWatch();

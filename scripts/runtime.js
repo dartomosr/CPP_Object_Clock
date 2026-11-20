@@ -296,9 +296,12 @@ const OPTIONS = new Map(Object.entries({
 
 const DEFAULT_SETTINGS = Object.freeze({
     customimage: '',
-    ui_syntax_mode: 'modern_cpp',
+    ui_background_interval: 5,
+    ui_syntax_mode: 'cpp',
     ui_number_base: 'decimal',
     ui_ide_frame: true,
+    ui_ide_panel_background: true,
+    ui_photo_panel_transparency: 6,
     ui_cursor: true,
     ui_status_bar: true,
     ui_console: false,
@@ -317,6 +320,8 @@ const DEFAULT_SETTINGS = Object.freeze({
     ui_auto_theme: false,
     ui_day_theme: 'rose_pine_dawn',
     ui_night_theme: 'rose_pine',
+    ui_custom_effect_color: false,
+    ui_effect_color: '0.7 0.85 1',
     ui_background: 'none',
     ui_rain_alphabet: 'cpp',
     ui_sus_mode: false,
@@ -338,6 +343,12 @@ function createSettings() {
     return {...DEFAULT_SETTINGS};
 }
 
+function effectColorCss(value) {
+    const channels = value.trim().split(/\s+/).map(Number);
+    if (channels.length !== 3 || !channels.every(n => Number.isFinite(n) && n >= 0 && n <= 1)) return '';
+    return `rgb(${channels.map(n => Math.round(n * 255)).join(', ')})`;
+}
+
 // Wallpaper Engine sends partial updates. Keep previous values for omitted properties.
 function applyProperties(settings, properties) {
     for (const key of Object.keys(DEFAULT_SETTINGS)) {
@@ -351,6 +362,14 @@ function applyProperties(settings, properties) {
         } else if (key === 'ui_font_size') {
             if (!Number.isFinite(value)) continue;
             value = Math.round(Math.max(16, Math.min(92, value)));
+        } else if (key === 'ui_photo_panel_transparency') {
+            if (!Number.isFinite(value)) continue;
+            value = Math.round(Math.max(0, Math.min(100, value)));
+        } else if (key === 'ui_background_interval') {
+            if (!Number.isFinite(value)) continue;
+            value = Math.round(Math.max(1, Math.min(120, value)));
+        } else if (key === 'ui_effect_color' && !effectColorCss(value)) {
+            continue;
         }
         settings[key] = value;
     }
@@ -376,7 +395,7 @@ function seasonalBackground(mode, monthIndex) {
 }
 
 function createBackdrop(canvas, host) {
-    let mode = 'none', alphabet = 'cpp', context, ink;
+    let mode = 'none', alphabet = 'cpp', context, themeInk, customInk = '';
     let sceneScale = 1;
     let width, height, ratio, previous, elapsed = 0;
     let targetX = 0, targetY = 0, driftX = 0, driftY = 0;
@@ -576,44 +595,88 @@ function createBackdrop(canvas, host) {
         context.stroke();
     }
 
+    // Independent samples keep seasonal particles from forming the rows of the technical scenes.
+    let seasonSeed = 73129;
+    function seasonRandom() {
+        seasonSeed = (Math.imul(seasonSeed, 1664525) + 1013904223) >>> 0;
+        return seasonSeed / 2 ** 32;
+    }
+    const seasonalParticles = Array.from({length: particles.length}, () => ({
+        x: seasonRandom(), y: seasonRandom(), depth: seasonRandom(), speed: seasonRandom(),
+        phase: seasonRandom() * Math.PI * 2, turn: (seasonRandom() - .5) * 1.6
+    }));
+
+    function snowflake(x, y, depth, angle) {
+        context.beginPath();
+        if (depth < .72) {
+            context.arc(x, y, .7 + depth * 2, 0, Math.PI * 2);
+            context.fill();
+            return;
+        }
+        const radius = 4 + depth * 4;
+        for (let arm = 0; arm < 6; arm++) {
+            const direction = angle + arm * Math.PI / 3;
+            const dx = Math.cos(direction), dy = Math.sin(direction);
+            const branchX = x + dx * radius * .62, branchY = y + dy * radius * .62;
+            segment(x, y, x + dx * radius, y + dy * radius);
+            segment(branchX, branchY, branchX + (dx + dy) * 2.1, branchY + (dy - dx) * 2.1);
+            segment(branchX, branchY, branchX + (dx - dy) * 2.1, branchY + (dy + dx) * 2.1);
+        }
+        context.stroke();
+    }
+
+    function petalOrLeaf(x, y, radius, angle, flutter, isLeaf) {
+        context.save();
+        context.translate(x, y);
+        context.rotate(angle);
+        context.scale(.4 + Math.abs(Math.sin(flutter)) * .6, 1);
+        context.beginPath();
+        context.moveTo(0, -radius);
+        if (isLeaf) {
+            context.quadraticCurveTo(radius * 1.25, -.35 * radius, 0, radius);
+            context.quadraticCurveTo(-radius, .15 * radius, 0, -radius);
+        } else {
+            context.quadraticCurveTo(radius * 1.2, -radius * 1.25, radius * .6, 0);
+            context.quadraticCurveTo(radius * .3, radius * .8, 0, radius);
+            context.quadraticCurveTo(-radius * .9, radius * .3, -radius * .7, -radius * .5);
+            context.quadraticCurveTo(-radius * .52, -radius * 1.35, 0, -radius);
+        }
+        context.fill();
+        if (isLeaf) {
+            context.globalAlpha *= .75;
+            context.beginPath();
+            segment(0, -radius * .85, 0, radius * 1.18);
+            context.stroke();
+        }
+        context.restore();
+    }
+
     function season() {
-        const count = Math.min(particles.length, Math.max(22, Math.ceil(width * height / 16000)));
-        context.font = '16px monospace';
+        const count = Math.min(seasonalParticles.length, Math.max(22, Math.ceil(width * height / 16000)));
+        const winter = mode === 'winter', summer = mode === 'summer', autumn = mode === 'autumn';
+        const wind = Math.sin(elapsed * .23) * 18 + Math.sin(elapsed * .61) * 6;
+        const margin = 32, fallHeight = height + 2 * margin;
         for (let i = 0; i < count; i++) {
-            const p = particles[i], a = elapsed * .65 + p.spin;
-            const x = p.x * (width + 40) - 20 + Math.sin(a) * (12 + 18 * p.depth);
-            const y = ((p.y * (height + 36) + elapsed * (14 + 25 * p.depth)) % (height + 36)) - 18;
-            context.globalAlpha = .26 + p.depth * .36;
-            if (mode === 'winter') {
-                context.fillText(['*', '+', '❄'][i % 3], x, y);
-            } else if (mode === 'summer') {
-                const glowY = p.y * height + Math.cos(a * .77) * 23;
-                const glow = .25 + .7 * (.5 + .5 * Math.sin(a * 1.6));
-                for (const radius of [9, 5, 2]) {
-                    context.globalAlpha = glow / (radius * .8);
+            const p = seasonalParticles[i];
+            const sway = p.phase + elapsed * (.4 + .75 * p.speed);
+            const x = p.x * width + Math.sin(sway) * (8 + 25 * p.depth) + wind * p.depth;
+            context.globalAlpha = .18 + p.depth * .46;
+            if (summer) {
+                const y = p.y * height + Math.cos(sway * .8) * (10 + 15 * p.depth);
+                const glow = (.5 + .5 * Math.sin(p.phase + elapsed * (.7 + p.speed))) ** 2;
+                for (const radius of [10, 5, 1.7]) {
+                    context.globalAlpha = (.18 + .82 * glow) * p.depth / radius;
                     context.beginPath();
-                    context.arc(x, glowY, radius * (.5 + p.depth), 0, Math.PI * 2);
+                    context.arc(x, y, radius * (.6 + p.depth), 0, Math.PI * 2);
                     context.fill();
                 }
-            } else {
-                const radius = (mode === 'spring' ? 5 : 8) * (.6 + p.depth);
-                context.save();
-                context.translate(x, y);
-                context.rotate(a + p.spin);
-                context.scale(.45 + Math.abs(Math.sin(a)) * .55, 1);
-                context.beginPath();
-                context.moveTo(0, -radius);
-                context.quadraticCurveTo(radius * 1.2, 0, 0, radius);
-                context.quadraticCurveTo(-radius * .8, radius / 2, 0, -radius);
-                context.fill();
-                if (mode === 'autumn') {
-                    context.globalAlpha = .48;
-                    context.beginPath();
-                    segment(0, -radius * .8, 0, radius * 1.4);
-                    context.stroke();
-                }
-                context.restore();
+                continue;
             }
+            const speed = 8 + 20 * p.speed + p.depth * (autumn ? 31 : 15);
+            const y = (p.y * fallHeight + elapsed * speed) % fallHeight - margin;
+            const angle = p.phase + p.turn * elapsed;
+            if (winter) snowflake(x, y, p.depth, angle * .4);
+            else petalOrLeaf(x, y, (autumn ? 8 : 5) * (.6 + p.depth), angle, sway, autumn);
         }
     }
 
@@ -635,12 +698,12 @@ function createBackdrop(canvas, host) {
             if (canvas.height !== pixelsY) canvas.height = pixelsY;
             context.setTransform(ratio, 0, 0, ratio, 0, 0);
         }
-        if (!ink) {
+        if (!customInk && !themeInk) {
             const colors = host.getComputedStyle(canvas);
-            ink = colors.color || colors.getPropertyValue('--accent').trim() || '#70b7b1';
+            themeInk = colors.color || colors.getPropertyValue('--accent').trim() || '#70b7b1';
         }
         context.clearRect(0, 0, width, height);
-        context.strokeStyle = context.fillStyle = ink;
+        context.strokeStyle = context.fillStyle = customInk || themeInk;
         if (mode === 'grid') grid();
         if (mode === 'graph') graph(delta);
         if (mode === 'scope') scope(wallTime);
@@ -657,14 +720,15 @@ function createBackdrop(canvas, host) {
         if (['winter', 'spring', 'summer', 'autumn'].includes(mode)) season();
     }
     return {
-        configure(next, chars, fontSize) {
+        configure(next, chars, fontSize, color) {
             alphabet = chars;
+            customInk = color;
             // Background geometry is authored in logical units at the original 48 px clock size.
             sceneScale = fontSize / 48;
             if (mode === next) return;
             mode = next;
             canvas.setAttribute('data-scene', next);
-            ink = undefined;
+            themeInk = undefined;
             canvas.hidden = mode === 'none';
             if (!canvas.hidden && !context) context = canvas.getContext('2d');
             previous = undefined;
@@ -677,14 +741,15 @@ function createBackdrop(canvas, host) {
         },
         draw,
         resetFrame() { previous = undefined; },
-        paletteChanged() { ink = undefined; }
+        paletteChanged() { themeInk = undefined; }
     };
 }
 
 
 function backgroundImageUrl(path) {
     if (!path) return '';
-    const normalized = path.replace(/\\/g, '/');
+    // Wallpaper Engine can escape the drive separator before sending a file property.
+    const normalized = path.replace(/\\/g, '/').replace(/^(file:\/\/\/)?([a-z])%3a(?=\/)/i, '$1$2:');
     // An existing file URL may already contain percent-encoded filename characters.
     if (/^file:\/\//i.test(normalized)) {
         const url = new URL(normalized.replace(/#/g, '%23'));
@@ -703,7 +768,7 @@ function applyTheme(document, theme) {
     else link.removeAttribute('href');
 }
 
-function applyAppearance(document, settings, hour = new Date().getHours()) {
+function applyAppearance(document, settings, hour = new Date().getHours(), backgroundPath = settings.customimage) {
     const {style} = document.body;
     style.fontSize = `${settings.ui_font_size}px`;
     style.fontFamily = settings.ui_customize_theme_enable && settings.ui_font_family !== 'inherit'
@@ -711,10 +776,13 @@ function applyAppearance(document, settings, hour = new Date().getHours()) {
     style.justifyContent = settings.ui_customize_position_enable ? settings.ui_position_x : 'center';
     style.alignItems = settings.ui_customize_position_enable ? settings.ui_position_y : 'center';
     applyTheme(document, activeTheme(settings, hour));
-    style.backgroundImage = backgroundImageUrl(settings.customimage);
     const panel = document.getElementById('workspace');
-    panel.classList.toggle('has-custom-image', Boolean(settings.customimage));
+    panel.classList.toggle('no-panel-background', !settings.ui_ide_panel_background);
     panel.classList.toggle('transparent-text-bg-container', settings.ui_semi_transparent_bg);
+    const image = backgroundImageUrl(backgroundPath);
+    style.backgroundImage = image;
+    panel.classList.toggle('photo-panel', Boolean(image));
+    panel.style.setProperty('--photo-panel-opacity', `${100 - settings.ui_photo_panel_transparency}%`);
 }
 
 function setText(node, text) {
@@ -729,7 +797,7 @@ function createClockView(document, host = document.defaultView, actions = {}) {
     const backdrop = createBackdrop(get('backdrop'), host);
     const desktop = createEditorControls(document, host, actions);
     let rows = [], mode, structure, typingEnabled, watchEnabled, hovered;
-    let lastUnix, buildStart, lastTheme, lastAudio = 0;
+    let lastUnix, lastHourStart, buildStart, lastTheme, lastAudio = 0;
     let pointerX = 0, pointerY = 0;
     let suspended = false;
     let needsFit = true;
@@ -853,10 +921,10 @@ function createClockView(document, host = document.defaultView, actions = {}) {
         const hour = settings.ui_use_12h_format ? clock.hour % 12 || 12 : clock.hour;
         const time = [hour, clock.minute, clock.second].map(n => String(n).padStart(2, '0')).join(':') +
             (settings.ui_use_12h_format ? ' ' + clock.period : '');
-        const minuteChanged = tick && clock.unix > lastUnix && clock.unix - lastUnix < 60 &&
-            Math.floor(lastUnix / 60) !== Math.floor(clock.unix / 60);
+        const hourStart = clock.unix - clock.minute * 60 - clock.second;
+        const hourChanged = hourStart !== lastHourStart && clock.unix > lastUnix && clock.unix - lastUnix < 60;
         if (!settings.ui_status_bar || clock.unix < lastUnix) buildStart = undefined;
-        else if (minuteChanged) buildStart = clock.unix;
+        else if (hourChanged) buildStart = clock.unix;
         const age = clock.unix - buildStart;
         const framed = settings.ui_ide_frame && !desktop.minimal && !desktop.collapsed;
         header.hidden = !framed;
@@ -890,12 +958,14 @@ function createClockView(document, host = document.defaultView, actions = {}) {
             backdrop.paletteChanged();
         }
         const scene = desktop.matrixBoost() ? 'matrix' : seasonalBackground(settings.ui_background, clock.monthIndex);
-        backdrop.configure(scene, settings.ui_rain_alphabet, settings.ui_font_size);
+        const customColor = settings.ui_custom_effect_color ? effectColorCss(settings.ui_effect_color) : '';
+        backdrop.configure(scene, settings.ui_rain_alphabet, settings.ui_font_size, customColor);
         lastTheme = theme;
         mode = nextMode;
         structure = layout;
         typingEnabled = settings.ui_typewriter;
         lastUnix = clock.unix;
+        lastHourStart = hourStart;
         if (needsFit || !observer) fit();
     }
     return {
@@ -913,7 +983,7 @@ function createClockView(document, host = document.defaultView, actions = {}) {
             suspended = paused;
             desktop.pause(paused);
             needsFit = true;
-            lastUnix = buildStart = undefined;
+            lastUnix = lastHourStart = buildStart = undefined;
             document.body.classList.toggle('paused', paused);
             backdrop.resetFrame();
             hideWatch();
@@ -1161,11 +1231,35 @@ function createEditorControls(document, host, actions) {
 }
 
 
+const BACKGROUND_DIRECTORY = 'backgroundfolder';
+const backgroundOrder = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+
 function startWallpaper(host, document) {
     const settings = createSettings();
     let canvasFps = 24;
     let view, lastSecond, lastError, timerId, frameId;
     let appearanceDirty = true, paused = false, stopped = false;
+    let backgroundFiles = [], backgroundIndex = 0, nextBackgroundAt;
+
+    function updateBackgroundFiles(propertyName, files, removed = false) {
+        if (stopped || propertyName !== BACKGROUND_DIRECTORY) return;
+        const current = backgroundFiles[backgroundIndex];
+        const paths = new Set(backgroundFiles);
+        for (const path of files) {
+            if (removed) paths.delete(path);
+            else paths.add(path);
+        }
+        const fileName = path => path.split(/[/\\]/).pop();
+        backgroundFiles = [...paths].sort((a, b) =>
+            backgroundOrder.compare(fileName(a), fileName(b)) || a.localeCompare(b)
+        );
+        backgroundIndex = Math.max(0, backgroundFiles.indexOf(current));
+        if (backgroundFiles.length < 2 || backgroundFiles[backgroundIndex] !== current) {
+            nextBackgroundAt = undefined;
+        }
+        appearanceDirty = true;
+        refresh(true);
+    }
 
     function refresh(force = false) {
         if (stopped || paused || document.readyState === 'loading') return;
@@ -1179,11 +1273,18 @@ function startWallpaper(host, document) {
                 ))
             });
             if (force || second !== lastSecond) {
+                if (backgroundFiles.length > 1 && (nextBackgroundAt === undefined || now >= nextBackgroundAt)) {
+                    if (nextBackgroundAt !== undefined) {
+                        backgroundIndex = (backgroundIndex + 1) % backgroundFiles.length;
+                        appearanceDirty = true;
+                    }
+                    nextBackgroundAt = now + settings.ui_background_interval * 60_000;
+                }
                 const clock = readClock(new Date(now));
                 view.update(clock, settings);
                 lastSecond = second;
                 if (appearanceDirty) {
-                    applyAppearance(document, settings, clock.hour);
+                    applyAppearance(document, settings, clock.hour, backgroundFiles[backgroundIndex]);
                     view.fit();
                     appearanceDirty = false;
                 }
@@ -1220,9 +1321,17 @@ function startWallpaper(host, document) {
             }
         },
         applyUserProperties(properties) {
+            const previousInterval = settings.ui_background_interval;
             applyProperties(settings, properties);
+            if (settings.ui_background_interval !== previousInterval) nextBackgroundAt = undefined;
             appearanceDirty = true;
             refresh(true);
+        },
+        userDirectoryFilesAddedOrChanged(propertyName, files) {
+            updateBackgroundFiles(propertyName, files);
+        },
+        userDirectoryFilesRemoved(propertyName, files) {
+            updateBackgroundFiles(propertyName, files, true);
         },
         setPaused(value) {
             if (stopped || paused === Boolean(value)) return;

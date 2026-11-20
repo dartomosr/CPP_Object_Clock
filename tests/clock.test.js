@@ -120,7 +120,7 @@ test('partial settings preserve previous values, false and empty paths', () => {
 test('settings reject invalid values and accept legacy Center', () => {
     const settings = createSettings();
     applyProperties(settings, properties({ui_syntax_mode: 'not-a-mode', ui_position_y: 'Center', ui_font_size: 100, ui_theme: '__proto__', ui_sus_mode: 'false', ui_position_x: 'invalid', ui_font_family: 'invalid'}));
-    assert.equal(settings.ui_syntax_mode, 'modern_cpp');
+    assert.equal(settings.ui_syntax_mode, 'cpp');
     assert.equal(settings.ui_position_y, 'center');
     assert.equal(settings.ui_font_size, 92);
     assert.equal(settings.ui_theme, 'code_blocks');
@@ -181,7 +181,6 @@ test('appearance restores theme fonts and keeps panel independent from image', (
     applyAppearance(document, settings);
     assert.equal(document.body.style.fontFamily, 'Iosevka, monospace');
     assert.equal(document.getElementById('clock-theme').getAttribute('href'), THEMES.jb_light);
-    assert.match(document.getElementById('workspace').className, /has-custom-image/);
     assert.match(document.getElementById('workspace').className, /transparent-text-bg-container/);
     settings.ui_customize_theme_enable = false;
     settings.ui_theme = 'main';
@@ -189,7 +188,6 @@ test('appearance restores theme fonts and keeps panel independent from image', (
     applyAppearance(document, settings);
     assert.equal(document.body.style.fontFamily, '');
     assert.equal(document.body.style.backgroundImage, '');
-    assert.doesNotMatch(document.getElementById('workspace').className, /has-custom-image/);
     assert.equal(document.getElementById('clock-theme').getAttribute('href'), null);
     assert.match(document.getElementById('workspace').className, /transparent-text-bg-container/);
 });
@@ -199,6 +197,9 @@ test('background paths safely handle spaces, hashes, quotes and network shares',
     assert.equal(backgroundImageUrl('C:\\images\\a #1.jpg'), 'url("file:///C:/images/a%20%231.jpg")');
     assert.equal(backgroundImageUrl('file:///C:/a.jpg'), 'url("file:///C:/a.jpg")');
     assert.equal(backgroundImageUrl('file:///C:/a%20b%23c.jpg'), 'url("file:///C:/a%20b%23c.jpg")');
+    assert.equal(backgroundImageUrl('E%3A/Картиночки/a #1.jpg'),
+        'url("file:///E:/%D0%9A%D0%B0%D1%80%D1%82%D0%B8%D0%BD%D0%BE%D1%87%D0%BA%D0%B8/a%20%231.jpg")');
+    assert.equal(backgroundImageUrl('file:///E%3a/a%20b.jpg'), 'url("file:///E:/a%20b.jpg")');
     assert.equal(backgroundImageUrl('C:/a%20b.jpg'), 'url("file:///C:/a%2520b.jpg")');
     assert.equal(backgroundImageUrl('//server/share/a.jpg'), 'url("file://server/share/a.jpg")');
     assert.ok(backgroundImageUrl('C:/a"b.jpg').includes('%22'));
@@ -207,6 +208,9 @@ test('background paths safely handle spaces, hashes, quotes and network shares',
 test('Wallpaper Engine configuration matches runtime defaults and local assets', () => {
     const config = JSON.parse(readFileSync(new URL('../project.json', import.meta.url), 'utf8'));
     const entries = config.general.properties;
+    assert.equal(entries.backgroundfolder.type, 'directory');
+    assert.equal(entries.backgroundfolder.mode, 'fetchall');
+    assert.equal(entries.backgroundfolder.fileType, 'image');
     for (const [key, expected] of Object.entries(DEFAULT_SETTINGS)) {
         assert.ok(entries[key], `missing property ${key}`);
         assert.equal(entries[key].value ?? '', expected, `default for ${key}`);
@@ -296,18 +300,114 @@ test('selected image survives partial theme updates and can be replaced and clea
     const app = bootRuntime({loading: true});
     const set = values => app.host.wallpaperPropertyListener.applyUserProperties(properties(values));
     const body = app.document.body;
-    set({customimage: 'C:/Фон/clock #1.jpg'});
+    const panel = app.document.getElementById('workspace');
+    set({customimage: 'C%3A/Фон/clock #1.jpg'});
     app.document.readyState = 'complete';
     app.events.get('DOMContentLoaded')();
     const first = 'url("file:///C:/%D0%A4%D0%BE%D0%BD/clock%20%231.jpg")';
     assert.equal(body.style.backgroundImage, first);
+    assert.match(panel.className, /\bframed\b/);
+    assert.match(panel.className, /photo-panel/);
+    assert.equal(panel.style['--photo-panel-opacity'], '94%');
+    assert.doesNotMatch(panel.className, /no-panel-background/);
     set({ui_theme: 'code_blocks', ui_semi_transparent_bg: true});
     assert.equal(body.style.backgroundImage, first);
     set({customimage: 'file:///C:/second%20image.png'});
     assert.equal(body.style.backgroundImage, 'url("file:///C:/second%20image.png")');
+    set({ui_photo_panel_transparency: 35});
+    assert.equal(panel.style['--photo-panel-opacity'], '65%');
+    set({ui_ide_panel_background: false});
+    assert.match(panel.className, /no-panel-background/);
+    assert.match(panel.className, /\bframed\b/);
+    set({ui_ide_panel_background: true});
+    assert.doesNotMatch(panel.className, /no-panel-background/);
+    assert.equal(body.style.backgroundImage, 'url("file:///C:/second%20image.png")');
     set({customimage: ''});
     assert.equal(body.style.backgroundImage, '');
+    assert.doesNotMatch(panel.className, /photo-panel/);
+    set({customimage: 'C:/third.png'});
+    assert.match(panel.className, /photo-panel/);
+    assert.equal(panel.style['--photo-panel-opacity'], '65%');
     assert.equal(app.errors.length, 0);
+});
+
+test('background folder cycles through images and falls back when cleared', () => {
+    const app = bootRuntime({loading: true});
+    const listener = app.host.wallpaperPropertyListener;
+    const image = () => app.document.body.style.backgroundImage;
+    const folder = 'backgroundfolder';
+    const first = 'C:/photos/01 #.jpg';
+    const second = 'C:/photos/2.jpg';
+    const third = 'C:/photos/10.jpg';
+    const fallback = 'C:/single.jpg';
+    const advance = seconds => { app.advance(seconds); app.timer(); };
+
+    listener.userDirectoryFilesAddedOrChanged(folder, [third, second, first, second]);
+    listener.applyUserProperties(properties({customimage: fallback, ui_background_interval: 1}));
+    app.document.readyState = 'complete';
+    app.events.get('DOMContentLoaded')();
+    assert.equal(image(), backgroundImageUrl(first));
+    advance(59);
+    assert.equal(image(), backgroundImageUrl(first));
+    advance(1);
+    assert.equal(image(), backgroundImageUrl(second));
+    listener.userDirectoryFilesAddedOrChanged(folder, [second]);
+    advance(60);
+    assert.equal(image(), backgroundImageUrl(third));
+    advance(60);
+    assert.equal(image(), backgroundImageUrl(first));
+
+    listener.applyUserProperties(properties({ui_background_interval: 2, ui_photo_panel_transparency: 35}));
+    const panel = app.document.getElementById('workspace');
+    assert.equal(panel.style['--photo-panel-opacity'], '65%');
+    advance(119);
+    assert.equal(image(), backgroundImageUrl(first));
+    advance(1);
+    assert.equal(image(), backgroundImageUrl(second));
+
+    listener.userDirectoryFilesRemoved('anotherfolder', [first, second, third]);
+    assert.equal(image(), backgroundImageUrl(second));
+    listener.userDirectoryFilesRemoved(folder, [first, second]);
+    assert.equal(image(), backgroundImageUrl(third));
+    advance(120);
+    assert.equal(image(), backgroundImageUrl(third));
+    listener.userDirectoryFilesRemoved(folder, [third]);
+    assert.equal(image(), backgroundImageUrl(fallback));
+    listener.userDirectoryFilesAddedOrChanged(folder, ['C:/other/new.png']);
+    assert.equal(image(), backgroundImageUrl('C:/other/new.png'));
+    assert.equal(app.errors.length, 0);
+});
+
+test('custom effect color overrides both Canvas fills and strokes only while enabled', () => {
+    const app = bootRuntime();
+    const set = values => app.host.wallpaperPropertyListener.applyUserProperties(properties(values));
+    const canvas = app.document.getElementById('backdrop');
+    const context = {
+        setTransform() {}, clearRect() {}, beginPath() {}, arc() {}, fill() {},
+        moveTo() {}, lineTo() {}, stroke() {}
+    };
+    canvas.getContext = () => context;
+    let themeColor = '#aabbcc';
+    app.host.getComputedStyle = () => ({color: themeColor});
+    const checkColor = expected => {
+        app.advance();
+        app.frame();
+        assert.equal(context.fillStyle, expected);
+        assert.equal(context.strokeStyle, expected);
+    };
+    set({ui_background: 'winter', ui_effect_color: '0.1 0.5 1', customimage: 'C:/wallpaper.jpg'});
+    checkColor(themeColor);
+    set({ui_custom_effect_color: true});
+    checkColor('rgb(26, 128, 255)');
+    themeColor = '#f0dacd';
+    set({ui_theme: 'rose_pine', ui_effect_color: '1 2 0'});
+    checkColor('rgb(26, 128, 255)');
+    set({ui_effect_color: '1 0 0.25'});
+    checkColor('rgb(255, 0, 64)');
+    set({ui_custom_effect_color: false});
+    checkColor(themeColor);
+    assert.equal(app.document.body.style.backgroundImage, 'url("file:///C:/wallpaper.jpg")');
+    assert.equal(app.document.body.style.backgroundColor, undefined);
 });
 
 test('shipped classic script starts repeatedly and keeps updating via timers or frames', () => {
@@ -467,13 +567,31 @@ test('independent editor effects keep their state through ticks and stop during 
     assert.match(get('hour').className, /typing/);
 });
 
-test('minute rollover plays a short build sequence only while status is enabled', () => {
+test('only a new local hour plays the build sequence while status is enabled', () => {
     const app = bootRuntime(), state = app.document.getElementById('build-state');
-    for (const [step, expected] of [[58, 'NORMAL'], [1, 'Compiling…'], [1, 'Build succeeded'], [2, 'NORMAL']]) {
+    for (const [step, expected] of [
+        [58, 'NORMAL'], [1, 'NORMAL'], [3539, 'NORMAL'],
+        [1, 'Compiling…'], [1, 'Build succeeded'], [2, 'NORMAL']
+    ]) {
         app.advance(step);
         app.timer();
         assert.equal(state.textContent, expected);
     }
+    const listener = app.host.wallpaperPropertyListener;
+    listener.applyUserProperties(properties({ui_status_bar: false}));
+    app.advance(3596);
+    app.timer();
+    app.advance();
+    app.timer();
+    listener.applyUserProperties(properties({ui_status_bar: true}));
+    assert.equal(state.textContent, 'NORMAL');
+
+    app.advance(3599);
+    app.timer();
+    listener.setPaused(true);
+    app.advance();
+    listener.setPaused(false);
+    assert.equal(state.textContent, 'NORMAL');
 });
 
 test('Canvas modes draw with theme ink, respect frame cap, resize, and release the active loop on pause', () => {
@@ -562,7 +680,7 @@ test('all additional scenes paint bounded frames and auto season selects autumn 
     canvas.getContext = () => ctx;
     app.host.getComputedStyle = () => ({color: '#abcd12'});
     for (const [scene, command] of Object.entries({starfield:'lineTo',circuit:'strokeRect',matrix:'fillText',
-        wireframe:'lineTo',flow:'lineTo',winter:'fillText',spring:'quadraticCurveTo',summer:'arc',
+        wireframe:'lineTo',flow:'lineTo',winter:'lineTo',spring:'quadraticCurveTo',summer:'arc',
         autumn:'quadraticCurveTo',auto_season:'quadraticCurveTo'})) {
         app.host.wallpaperPropertyListener.applyUserProperties(properties({ui_background: scene}));
         draws.length = 0;
@@ -573,6 +691,29 @@ test('all additional scenes paint bounded frames and auto season selects autumn 
         assert.equal(ctx.fillStyle, '#abcd12');
     }
     assert.deepEqual(app.errors, []);
+});
+
+test('snow contains both close crystals and distant flakes with independent motion', () => {
+    const app = bootRuntime(), canvas = app.document.getElementById('backdrop');
+    const dots = [];
+    let crystals = 0;
+    canvas.getContext = () => ({
+        clearRect() { dots.length = 0; crystals = 0; },
+        arc(x, y, radius) { dots.push({x, y, radius}); },
+        stroke() { crystals++; },
+        setTransform() {}, beginPath() {}, fill() {}, moveTo() {}, lineTo() {}
+    });
+    app.host.getComputedStyle = () => ({color: '#abc'});
+    app.host.wallpaperPropertyListener.applyUserProperties(properties({ui_background: 'winter'}));
+    app.frame();
+    assert.ok(crystals > 0);
+    assert.ok(dots.length > 12);
+    assert.ok(new Set(dots.map(dot => Math.round(dot.radius * 10))).size > 4);
+    const firstFrame = [...dots];
+    app.advance(.2);
+    app.frame();
+    const distances = dots.map((dot, index) => Math.round((dot.y - firstFrame[index].y) * 10));
+    assert.ok(new Set(distances).size > 8);
 });
 
 test('window buttons, file tabs and theme palette act through the bundled entry point', () => {
